@@ -10,69 +10,16 @@ var (
 	Bulets [][]game.Point
 	Steps  []game.Point
 
-	DangerousPoints   = []game.Point{{X: 16, Y: 29}, {X: 17, Y: 29}, {X: 32, Y: 16}}
+	SPAWNED_IN_DANGEROUS_ZONE = false
+
+	DangerousPoints   = []game.Point{{X: 16, Y: 29}, {X: 17, Y: 29}, {X: 32, Y: 16}, {X: 0, Y: 16}, {X: 1, Y: 16}, {X: 15, Y: 22}, {X: 16, Y: 22}, {X: 17, Y: 22}}
 	DangerousElements = []rune{game.BULLET, game.TANK_DOWN, game.TANK_LEFT, game.TANK_RIGHT, game.TANK_UP, game.RIVER}
+
+	ZERO_DIRECTION = direction.Direction(1000)
 )
 
-func checkEqual(a, b []game.Point) bool {
-	for _, av := range a {
-		for _, bv := range b {
-			if av != bv {
-				return false
-			}
-		}
-	}
-	return true
-}
-
-func isUpdatingProcess(e []game.Point) bool {
-	Bulets = append(Bulets, e)
-
-	if len(Bulets) == 1 {
-		return false
-	}
-
-	if len(Bulets) == 2 {
-		r := checkEqual(Bulets[len(Bulets)-1], Bulets[len(Bulets)-2])
-		Bulets = [][]game.Point{}
-		return r
-	}
-	return true
-}
-
-func NotBlindZone(e game.Point) bool {
-	for _, v := range DangerousPoints {
-		if e == v {
-			return false
-		}
-	}
-	return true
-}
-
-func NotDangerous(e game.Element) bool {
-	return (e == game.NONE || e == game.ICE || e == game.OTHER_TANK_DOWN || e == game.OTHER_TANK_LEFT || e == game.OTHER_TANK_RIGHT || e == game.OTHER_TANK_UP) &&
-		e != game.TREE &&
-		e != game.RIVER &&
-		e != game.BULLET
-}
-
-// //Checks whether hero is stuck ...
-func gotStuck(c game.Point) bool {
-	if len(Steps) > 4 {
-		return Steps[len(Steps)-1] == Steps[len(Steps)-3] &&
-			Steps[len(Steps)-2] == Steps[len(Steps)-4]
-
-	}
-	return false
-}
-
 //Main hub of hero movement decisions ;) ...
-func GetReliableWayToGo(b *game.Board) direction.Direction {
-
-	if isUpdatingProcess(b.GetBullets()) {
-		Steps = []game.Point{}
-		return direction.Direction(1000)
-	}
+func GetWayToGo(b *game.Board) direction.Direction {
 
 	//Gets the coords of hero and elements ...
 
@@ -88,46 +35,73 @@ func GetReliableWayToGo(b *game.Board) direction.Direction {
 	rightItem := b.GetAt(right)
 	leftItem := b.GetAt(left)
 
-	fmt.Println(gotTheLastPointOfZone(myCoords), getTacticByCodeZone(getCurrentZone(myCoords)), getCurrentZone(myCoords))
-	fmt.Println(myCoords)
+	if isUpdatingProcess(b.GetBullets()) {
+
+		if InBlindZone(myCoords) {
+			setSpawnedInDangerousZone(true)
+		}
+
+		setIsNotAvailableZoneActive(false)
+		setZoneAvailablility(getCurrentZone(myCoords))
+
+		clearSteps()
+
+		return ZERO_DIRECTION
+	}
 
 	if CURRENT_TACTIC == ZERO_VALUE {
 		setNextTactic(getTacticByCodeZone(getCurrentZone(myCoords)))
 	}
 
-	if gotTheLastPointOfZone(myCoords) {
-		setNextTactic(getNextTactic())
+	if InBlindZone(myCoords) {
+		setSpawnedInDangerousZone(false)
 	}
-	//Checks if stuck ...
 
-	if gotStuck(myCoords) {
-		setNextTactic(getRandomTactic())
+	if inSafety(myCoords) {
+		setIsNotAvailableZoneActive(true)
+		setZoneAvailablility(getCurrentZone(myCoords))
+	}
+
+	// if gotTheLastPointOfZone(myCoords) {
+	// 	setNextTactic(getNextTactic())
+	// }
+	// Checks if stuck ...
+
+	// if gotStuck(myCoords) {
+	// 	fmt.Println("STUCK")
+	// 	setNextTactic(getRandomTactic())
+	// }
+
+	if ifEnemyInAvailableZone(getTheNearestEnemy(b.GetEnemies(), myCoords)) {
+		setNextTactic(getTacticToGetTheEnemy(myCoords, getTheNearestEnemy(b.GetEnemies(), myCoords)))
 	}
 
 	//Due to the pipeline chose the next direction ...
+	// fmt.Println(getActionSetByTactic())
 
 	for _, p := range getActionSetByTactic() {
+		fmt.Println(p)
 		switch p {
 		case UP:
-			if NotDangerous(topItem) && NotBlindZone(top) {
+			if notDangerous(topItem) && InAvailableZone(top) && NotBlindZone(top) {
 				Steps = append(Steps, top)
 				return direction.UP
 			}
 			continue
 		case RIGHT:
-			if NotDangerous(rightItem) && NotBlindZone(right) {
+			if notDangerous(rightItem) && InAvailableZone(right) && NotBlindZone(right) {
 				Steps = append(Steps, right)
 				return direction.RIGHT
 			}
 			continue
 		case LEFT:
-			if NotDangerous(leftItem) && NotBlindZone(left) {
+			if notDangerous(leftItem) && InAvailableZone(left) && NotBlindZone(left) {
 				Steps = append(Steps, left)
 				return direction.LEFT
 			}
 			continue
 		case DOWN:
-			if NotDangerous(bottomItem) && NotBlindZone(bottom) {
+			if notDangerous(bottomItem) && InAvailableZone(bottom) && NotBlindZone(bottom) {
 				Steps = append(Steps, bottom)
 				return direction.DOWN
 			}
@@ -136,5 +110,5 @@ func GetReliableWayToGo(b *game.Board) direction.Direction {
 	}
 
 	fmt.Println("there are not variants")
-	return direction.Direction(1000)
+	return ZERO_DIRECTION
 }

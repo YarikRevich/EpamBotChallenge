@@ -41,7 +41,7 @@ func New() Solver {
 func (s Solver) GetNextAction(b *game.Board) action.Action {
 	//todo: your code here
 
-	way := GetReliableWayToGo(b)
+	way := GetWayToGo(b)
 
 	if way.IsValid(){
 		return action.FireMove(way)

@@ -1,8 +1,8 @@
 package solver
 
 import (
+	"fmt"
 	"battlecity_test/game"
-	"math/rand"
 )
 
 const (
@@ -17,6 +17,15 @@ const (
 	SECOND_TACTIC
 	THIRD_TACTIC
 	FORTH_TACTIC
+
+	//Available tactics of movements to get the enemies ...
+
+	FIRST_TACTIC_ENEMY
+	SECOND_TACTIC_ENEMY
+	THIRD_TACTIC_ENEMY
+	FORTH_TACTIC_ENEMY
+	FIFTH_TACTIC_ENEMY
+	SIXTH_TACTIC_ENEMY
 
 	//Zero value for not chosen action ...
 	ZERO_VALUE
@@ -43,6 +52,11 @@ var (
 	//Current tactic of movement
 
 	CURRENT_TACTIC = ZERO_VALUE
+
+	//Not available zone
+
+	NOT_AVAILABLE_ZONE           = game.Point{X: 0, Y: 14}
+	IS_NOT_AVAILABLE_ZONE_ACTIVE bool
 )
 
 //Shows the zone where the hero is placed ...
@@ -60,66 +74,29 @@ func getCurrentZone(c game.Point) int {
 	return ZERO_VALUE
 }
 
-//Checks if hero at the control point ...
-func gotTheLastPointOfZone(c game.Point) bool {
-	return c == FIRST_ZONE_CONTROL_POINT ||
-		c == SECOND_ZONE_CONTROL_POINT ||
-		c == THIRD_ZONE_CONTROL_POINT ||
-		c == FORTH_ZONE_CONTROL_POINT
-}
-
-func getTacticByCodeZone(zone int) int {
-	switch zone {
-	case FIRST_ZONE_CODE:
-		return FIRST_TACTIC
-	case SECOND_ZONE_CODE:
-		return SECOND_TACTIC
-	case THIRD_ZONE_CODE:
-		return THIRD_TACTIC
-	case FORTH_ZONE_CODE:
-		return FORTH_TACTIC
+//Checks whether hero is stuck ...
+func gotStuck(c game.Point) bool {
+	fmt.Println(Steps)
+	if len(Steps) > 2 {
+		return Steps[len(Steps)-1].X == Steps[len(Steps)-2].X+1 ||
+			Steps[len(Steps)-1].X == Steps[len(Steps)-2].X-1 ||
+			Steps[len(Steps)-1].X == Steps[len(Steps)-2].Y+1 ||
+			Steps[len(Steps)-1].X == Steps[len(Steps)-2].Y-1
 	}
-	return ZERO_VALUE
+	return false
 }
 
-//Due to the previous tactic returns the next one ...
-func getNextTactic() int {
-	switch CURRENT_TACTIC {
-	case FIRST_TACTIC:
-		return SECOND_TACTIC
-	case SECOND_TACTIC:
-		return THIRD_TACTIC
-	case THIRD_TACTIC:
-		return FORTH_TACTIC
-	}
-	return ZERO_VALUE
+func notDangerous(e game.Element) bool {
+	return (e == game.NONE || e == game.ICE || e == game.OTHER_TANK_DOWN || e == game.OTHER_TANK_LEFT || e == game.OTHER_TANK_RIGHT || e == game.OTHER_TANK_UP) &&
+		e != game.TREE &&
+		e != game.RIVER &&
+		e != game.BULLET
 }
 
-func setNextTactic(tactic int) {
-	CURRENT_TACTIC = tactic
-}
-
-//Due to the tactic name returns the action set
-func getActionSetByTactic() []string {
-	switch CURRENT_TACTIC {
-	case FIRST_TACTIC:
-		return []string{UP, LEFT, RIGHT, DOWN}
-	case SECOND_TACTIC:
-		return []string{UP, RIGHT, LEFT, DOWN}
-	case THIRD_TACTIC:
-		return []string{DOWN, LEFT, UP}
-	case FORTH_TACTIC:
-		return []string{RIGHT, UP, DOWN}
-	}
-	return nil
-}
-
-func getRandomTactic() int {
-	a := [...]int{FIRST_TACTIC, SECOND_TACTIC, THIRD_TACTIC, FORTH_TACTIC}
-	for {
-		c := a[rand.Intn(3)]
-		if c != CURRENT_TACTIC{
-			return c
-		}
-	}
-}
+// //Checks if hero at the control point ...
+// func gotTheLastPointOfZone(c game.Point) bool {
+// 	return c == FIRST_ZONE_CONTROL_POINT ||
+// 		c == SECOND_ZONE_CONTROL_POINT ||
+// 		c == THIRD_ZONE_CONTROL_POINT ||
+// 		c == FORTH_ZONE_CONTROL_POINT
+// }
