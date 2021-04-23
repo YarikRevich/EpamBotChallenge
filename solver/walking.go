@@ -12,7 +12,7 @@ var (
 
 	SPAWNED_IN_DANGEROUS_ZONE = false
 
-	DangerousPoints   = []game.Point{{X: 16, Y: 29}, {X: 17, Y: 29}, {X: 32, Y: 16}, {X: 0, Y: 16}, {X: 1, Y: 16}, {X: 15, Y: 22}, {X: 16, Y: 22}, {X: 17, Y: 22}}
+	DangerousPoints   = []game.Point{{X: 16, Y: 29}, {X: 17, Y: 29}, {X: 32, Y: 16}, {X: 0, Y: 16}, {X: 1, Y: 16}, {X: 15, Y: 23}, {X: 16, Y: 23}, {X: 17, Y: 23}}
 	DangerousElements = []rune{game.BULLET, game.TANK_DOWN, game.TANK_LEFT, game.TANK_RIGHT, game.TANK_UP, game.RIVER}
 
 	ZERO_DIRECTION = direction.Direction(1000)
@@ -75,6 +75,8 @@ func GetWayToGo(b *game.Board) direction.Direction {
 	if ifEnemyInAvailableZone(getTheNearestEnemy(b.GetEnemies(), myCoords)) {
 		setNextTactic(getTacticToGetTheEnemy(myCoords, getTheNearestEnemy(b.GetEnemies(), myCoords)))
 	}
+
+	fmt.Println(myCoords)
 
 	//Due to the pipeline chose the next direction ...
 	// fmt.Println(getActionSetByTactic())
