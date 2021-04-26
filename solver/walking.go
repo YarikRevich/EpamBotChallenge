@@ -45,17 +45,17 @@ func GetWayToGo(b *game.Board) direction.Direction {
 		setZoneAvailablility(getCurrentZone(myCoords))
 	}
 
-	if specleIsStart() {
-		setSpecle(getTheNearestEnemy(getEnemies(b), myCoords))
-	} else if n, ok := isEnemyAlive(getEnemies(b)); ok {
-		fmt.Println("ALIVE")
-		setSpecle(n)
-	} else if _, ok := isEnemyAlive(getEnemies(b)); !ok {
-		fmt.Println("NOT ALIVE")
-		setSpecle(getTheNearestEnemy(getEnemies(b), myCoords))
-	}
+	// if specleIsStart() {
+	// 	setSpecle(getTheNearestEnemy(getEnemies(b), myCoords))
+	// } else if n, ok := isEnemyAlive(getEnemies(b)); ok {
+	// 	fmt.Println("ALIVE")
+	// 	setSpecle(n)
+	// } else if _, ok := isEnemyAlive(getEnemies(b)); !ok {
+	// 	fmt.Println("NOT ALIVE")
+	// 	setSpecle(getTheNearestEnemy(getEnemies(b), myCoords))
+	// }
 
-	setAction(getTheBestTactic(myCoords, getSpecle(), b))
+	setAction(getTheBestTactic(myCoords, getTheNearestEnemy(getEnemies(b), myCoords), b))
 
 	// if ifEnemyInAvailableZone(getTheNearestEnemy(getEnemies(b), myCoords)) {
 	// 	setNextTactic(getTacticToGetTheEnemy(myCoords, getTheNearestEnemy(b.GetEnemies(), myCoords)))
