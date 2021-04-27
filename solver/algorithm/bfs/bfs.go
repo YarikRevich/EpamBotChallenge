@@ -1,4 +1,4 @@
-package algorithm
+package bfs
 
 import (
 
@@ -46,13 +46,14 @@ func New(g *graph.Graph, src game.Point) *Bfs {
 
 // Generates the path from the source node to the destination.
 func (d *Bfs) Path(dst game.Point) []game.Point {
+
 	// Return nil if not reachable
 	if !d.Reachable(dst) {
 		return nil
 	}
 	// If reachable, but path not yet generated, create and cache
 	if cached, ok := d.paths[dst]; !ok {
-		for cur := dst; cur != d.source; {
+		for cur := dst; cur != d.source;{
 			d.builder.Push(cur)
 			cur = d.parents[cur]
 		}
@@ -72,22 +73,25 @@ func (d *Bfs) Path(dst game.Point) []game.Point {
 // Checks whether a given vertex is reachable from the source.
 func (d *Bfs) Reachable(dst game.Point) bool {
 	if !d.visited[dst] && !d.pending.Empty() {
-		d.search(dst)
+		f := d.search(dst)
+		if !f{
+			return false
+		}
 	}
 	return d.visited[dst]
 }
 
-// Generates the full order in which nodes were traversed.
-func (d *Bfs) Order() []game.Point {
-	// Force bfs termination
-	if !d.pending.Empty() {
-		d.search(game.Point{X: 32, Y: 32})
-	}
-	return d.order
-}
+// // Generates the full order in which nodes were traversed.
+// func (d *Bfs) Order() []game.Point {
+// 	// Force bfs termination
+// 	if !d.pending.Empty() {
+// 		d.search(game.Point{X: 32, Y: 32})
+// 	}
+// 	return d.order
+// }
 
 // Continues the bfs search from the last yield point, looking for dst.
-func (d *Bfs) search(dst game.Point) {
+func (d *Bfs) search(dst game.Point)bool {
 	for !d.pending.Empty() {
 		// Fetch the next node, and visit if new
 		src := d.pending.Pop().(game.Point)
@@ -101,7 +105,8 @@ func (d *Bfs) search(dst game.Point) {
 		})
 		// If we found the destination, yield
 		if dst == src {
-			return
+			return true
 		}
 	}
+	return false
 }

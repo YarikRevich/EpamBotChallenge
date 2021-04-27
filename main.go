@@ -28,9 +28,9 @@ import (
 )
 
 func main() {
-	///n8x403qatme2wqwyeajg?code=6999680204656435641&game=battlecity
 
-	//https://epam-botchallenge.com/codenjoy-contest/board/player/qf4t9nh7yhww7507kyq6?code=260516936731504358
+	//URL FOR PROD ;) https://epam-botchallenge.com/codenjoy-contest/board/player/qf4t9nh7yhww7507kyq6?code=260516936731504358
+	
 	browserURL := "https://practice.epam-botchallenge.com/codenjoy-contest/board/player/n8x403qatme2wqwyeajg?code=6999680204656435641&game=battlecity"
 
 	game, c := game.StartGame(browserURL)

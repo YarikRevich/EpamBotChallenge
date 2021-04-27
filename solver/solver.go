@@ -22,9 +22,9 @@
 package solver
 
 import (
-	_ "fmt"
 	"battlecity_test/action"
 	"battlecity_test/game"
+	"battlecity_test/solver/middlewares"
 )
 
 var (
@@ -41,11 +41,17 @@ func New() Solver {
 func (s Solver) GetNextAction(b *game.Board) action.Action {
 	//todo: your code here
 
-	way := GetWayToGo(b)
-
-	if way.IsValid(){
-		return action.FireMove(way)
-	}
+	m := middlewares.Run(b)
 	
+	if m.Way.IsValid() {
+		if m.Shoot{
+			if m.MoveFire{
+				return action.MoveFire(m.Way)
+			}
+			return action.FireMove(m.Way)
+		}
+		return action.Move(m.Way)
+	}
+
 	return action.DoNothing()
 }

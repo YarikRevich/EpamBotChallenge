@@ -29,10 +29,11 @@ const (
 	DOWN
 	RIGHT
 	LEFT
+	NONE
 )
 
 func (d Direction) String() string {
-	return [...]string{"UP", "DOWN", "RIGHT", "LEFT"}[d]
+	return [...]string{"UP", "DOWN", "RIGHT", "LEFT", "NONE"}[d]
 }
 
 func (d Direction) IsValid() bool {
