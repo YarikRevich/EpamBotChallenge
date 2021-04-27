@@ -1,14 +1,36 @@
 package utils
 
 import (
-	"math"
 	"battlecity_test/game"
+	"math"
 )
-
 
 var (
 	Bulets [][]game.Point
 )
+
+func GetWalls(b *game.Board) []game.Point {
+	return b.GetAllPoints(
+		game.WALL,
+		game.WALL_DESTROYED_DOWN,
+		game.WALL_DESTROYED_UP,
+		game.WALL_DESTROYED_LEFT,
+		game.WALL_DESTROYED_RIGHT,
+
+		game.WALL_DESTROYED_DOWN_TWICE,
+		game.WALL_DESTROYED_UP_TWICE,
+		game.WALL_DESTROYED_LEFT_TWICE,
+		game.WALL_DESTROYED_RIGHT_TWICE,
+
+		game.WALL_DESTROYED_LEFT_RIGHT,
+		game.WALL_DESTROYED_UP_DOWN,
+
+		game.WALL_DESTROYED_UP_LEFT,
+		game.WALL_DESTROYED_RIGHT_UP,
+		game.WALL_DESTROYED_DOWN_LEFT,
+		game.WALL_DESTROYED_DOWN_RIGHT,
+	)
+}
 
 func CheckEqual(a, b []game.Point) bool {
 	for _, av := range a {
@@ -42,7 +64,6 @@ func IsWithin(a game.Point, b []game.Point) bool {
 
 }
 
-
 func GetTheNearestElement(o game.Point, c []game.Point) game.Point {
 	var theBest game.Point
 	var theBestLength float64
@@ -60,8 +81,6 @@ func GetTheNearestElement(o game.Point, c []game.Point) game.Point {
 	}
 	return theBest
 }
-
-
 
 func IsUpdatingProcess(e []game.Point) bool {
 	Bulets = append(Bulets, e)

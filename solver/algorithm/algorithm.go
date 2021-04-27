@@ -1,7 +1,6 @@
 package algorithm
 
 import (
-	"fmt"
 
 	"battlecity_test/game"
 	"battlecity_test/solver/algorithm/bfs"
@@ -87,14 +86,12 @@ func GetBestTactic(myCoords game.Point, destination game.Point, b *game.Board) (
 
 		TRAP = true
 
-		fmt.Println(utils.GetTheNearestElement(myCoords, b.GetBarriers()))
-
 		a = b.GetBarriers()
 		a = append(a, myCoords)
 
 		g = createGraph(myCoords, a)
 		r = bfs.New(g, myCoords)
-		path = r.Path(utils.GetTheNearestElement(myCoords, b.GetBarriers()))
+		path = r.Path(utils.GetTheNearestElement(myCoords, utils.GetWalls(b)))
 	}
 
 	if len(path) <= 1 {
