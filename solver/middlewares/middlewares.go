@@ -1,8 +1,6 @@
 package middlewares
 
 import (
-	"fmt"
-
 	"battlecity_test/direction"
 	"battlecity_test/game"
 	"battlecity_test/solver/algorithm"
@@ -16,6 +14,10 @@ type Default struct {
 type Middleware struct {
 	Default //field for servicing elements ...
 
+	KD *int
+
+	MyBullet *game.Point
+
 	Updation bool
 
 	Trap bool
@@ -26,7 +28,12 @@ type Middleware struct {
 }
 
 func (m *Middleware) GetBestWayMiddleware() {
-	t, trap := algorithm.GetBestTactic(m.Default.b.GetMe(), utils.GetTheNearestElement(m.Default.b.GetMe(), m.Default.b.GetEnemies()), m.Default.b)
+	t, trap := algorithm.GetBestTactic(
+		m.Default.b.GetMe(),
+		*m.MyBullet,
+		utils.GetTheNearestElement(m.Default.b.GetMe(), m.Default.b.GetEnemies()),
+		m.Default.b,
+	)
 	m.Trap = trap
 	switch t {
 	case algorithm.UP:
@@ -43,7 +50,7 @@ func (m *Middleware) GetBestWayMiddleware() {
 }
 
 func (m *Middleware) UpdatingProcessMiddleware() {
-	if utils.IsUpdatingProcess(m.Default.b.GetBullets()) {
+	if utils.IsUpdatingProcess(utils.GetAIEnemies(m.Default.b)) {
 		m.Updation = true
 		m.Way = direction.NONE
 	}
@@ -56,7 +63,6 @@ func (m *Middleware) CanShootMiddleware() {
 	}
 
 	s := m.Default.b.GetMe()
-	fmt.Println(s)
 	r := []game.Point{}
 
 	for {
@@ -79,9 +85,7 @@ func (m *Middleware) CanShootMiddleware() {
 		r = append(r, s)
 	}
 
-
 	for _, a := range r {
-		fmt.Println(a)
 		if utils.IsWithin(a, m.Default.b.GetBarriers()) {
 			break
 		}
@@ -123,21 +127,82 @@ func (m *Middleware) AllowToShootForcibly() {
 	m.Shoot = true
 }
 
-func Run(b *game.Board) *Middleware {
+func (m *Middleware) StopKDTickerMiddleware() {
+
+	*m.KD = 4
+}
+
+func (m *Middleware) ResetKDMiddleware() {
+	if *m.KD == 4 {
+		*m.KD = 0
+	}
+}
+
+func (m *Middleware) RegKDMiddleware() {
+	if *m.KD != 4 {
+		*m.KD++
+	}
+}
+
+func (m *Middleware) RegBulletMiddleware() {
+	if *m.KD == 0 {
+
+		myCoords := m.Default.b.GetMe()
+
+		switch m.Way {
+		case direction.UP:
+			*m.MyBullet = game.Point{X: myCoords.X, Y: myCoords.Y + 1}
+		case direction.RIGHT:
+			*m.MyBullet = game.Point{X: myCoords.X + 1, Y: myCoords.Y}
+		case direction.LEFT:
+			*m.MyBullet = game.Point{X: myCoords.X - 1, Y: myCoords.Y}
+		case direction.DOWN:
+			*m.MyBullet = game.Point{X: myCoords.X, Y: myCoords.Y - 1}
+		}
+	}
+}
+
+func (m *Middleware) UpdateBulletMiddleware() {
+	if *m.MyBullet != algorithm.EMPTY_COORDS {
+		if n, ok := utils.IsBulletAlive(*m.MyBullet, m.Default.b.GetBullets()); ok {
+			*m.MyBullet = n
+		} else {
+			*m.MyBullet = algorithm.EMPTY_COORDS
+		}
+	}
+}
+
+func Run(b *game.Board, KD *int, MyBullet *game.Point) *Middleware {
 	m := new(Middleware)
 	m.Default.b = b
+	m.KD = KD
+	m.MyBullet = MyBullet
 
 	m.GetBestWayMiddleware()
 	m.UpdatingProcessMiddleware()
 
+	m.UpdateBulletMiddleware()
+
 	switch {
 	case m.Trap:
-		fmt.Println("TRAP")
+		m.ResetKDMiddleware()
+
 		m.AllowToShootForcibly()
+	case m.Updation:
+
+		m.StopKDTickerMiddleware()
 	case !m.Updation:
+
 		m.CanShootMiddleware()
-		fmt.Println("NORMAL", m.Shoot)
-		m.ShouldMoveFireOrFireMoveMiddleware()
+
+		if m.Shoot {
+			m.ResetKDMiddleware() // Resets KD to its beginning position ...
+
+			m.ShouldMoveFireOrFireMoveMiddleware()
+
+			m.RegBulletMiddleware() // Regs outcoming bullet ...
+
+		}
 	}
 	return m
 }

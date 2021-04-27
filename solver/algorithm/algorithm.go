@@ -1,12 +1,14 @@
 package algorithm
 
 import (
+	"math/rand"
 
 	"battlecity_test/game"
 	"battlecity_test/solver/algorithm/bfs"
 	"battlecity_test/solver/algorithm/graph"
 	"battlecity_test/solver/utils"
 )
+
 
 const (
 	ZERO_TACTIC = ""
@@ -21,6 +23,8 @@ var (
 	EMPTY_COORDS = game.Point{}
 
 	MY_COORDS = game.Point{}
+
+	MY_BULLET = game.Point{}
 )
 
 func isFreeAt(c game.Point, a []game.Point) bool {
@@ -39,7 +43,7 @@ func updateMyCoords(c game.Point) {
 //Just creates the graph ;) ...
 func createGraph(c game.Point, a []game.Point) *graph.Graph {
 
-	g := graph.New(600)
+	g := graph.New(2000)
 
 	for _, v := range a {
 
@@ -76,7 +80,6 @@ func analiseGraph(g *graph.Graph, myCoords game.Point, destination game.Point, b
 
 	path := r.Path(destination)
 	if path == nil {
-
 		trap = true
 
 		a := b.GetBarriers()
@@ -91,14 +94,18 @@ func analiseGraph(g *graph.Graph, myCoords game.Point, destination game.Point, b
 	return path, trap
 }
 
-func GetBestTactic(myCoords game.Point, destination game.Point, b *game.Board) (string, bool) {
+func GetBestTactic(myCoords game.Point, myBullet game.Point, destination game.Point, b *game.Board) (string, bool) {
 
 	if myCoords == EMPTY_COORDS {
-		myCoords = MY_COORDS
+		if MY_COORDS != EMPTY_COORDS{
+			myCoords = MY_COORDS
+		}else{
+			myCoords = game.Point{X: rand.Intn(b.BoardSize()), Y: rand.Intn(b.BoardSize())}
+		}
 	}
 
 	a := b.GetAllPoints(game.NONE, game.TREE, game.ICE, game.PRIZE, game.PRIZE_IMMORTALITY, game.PRIZE_BREAKING_WALLS, game.PRIZE_VISIBILITY, game.PRIZE_NO_SLIDING, game.PRIZE_WALKING_ON_WATER, game.OTHER_TANK_DOWN, game.OTHER_TANK_LEFT, game.OTHER_TANK_RIGHT, game.OTHER_TANK_UP, game.AI_TANK_DOWN, game.AI_TANK_LEFT, game.AI_TANK_RIGHT, game.AI_TANK_UP, game.AI_TANK_PRIZE)
-	a = append(a, myCoords)
+	a = append(a, myCoords, myBullet)
 
 	g := createGraph(myCoords, a)
 	

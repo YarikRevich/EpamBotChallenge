@@ -1,13 +1,35 @@
 package utils
 
 import (
+	"fmt"
 	"battlecity_test/game"
 	"math"
+)
+
+const (
+	BULLET_SPEED = 2
 )
 
 var (
 	Bulets [][]game.Point
 )
+
+func GetAIEnemies(b *game.Board) []game.Point {
+	return b.GetAllPoints(
+		game.AI_TANK_DOWN,
+		game.AI_TANK_LEFT,
+		game.AI_TANK_RIGHT,
+		game.AI_TANK_UP,
+		game.AI_TANK_PRIZE,
+
+		game.PRIZE,
+		game.PRIZE_BREAKING_WALLS,
+		game.PRIZE_IMMORTALITY,
+		game.PRIZE_NO_SLIDING,
+		game.PRIZE_VISIBILITY,
+		game.PRIZE_WALKING_ON_WATER,
+	)
+}
 
 func GetWalls(b *game.Board) []game.Point {
 	return b.GetAllPoints(
@@ -83,16 +105,22 @@ func GetTheNearestElement(o game.Point, c []game.Point) game.Point {
 }
 
 func IsUpdatingProcess(e []game.Point) bool {
-	Bulets = append(Bulets, e)
 
-	if len(Bulets) == 1 {
-		return false
+	if (IsWithin(game.Point{X: 1, Y: 1}, e) &&
+		IsWithin(game.Point{X: 25, Y: 1}, e)) ||
+		(IsWithin(game.Point{X: 2, Y: 32}, e) &&
+			IsWithin(game.Point{X: 31, Y: 32}, e)) {
+		return true
 	}
+	return false
+}
 
-	if len(Bulets) == 2 {
-		r := CheckEqual(Bulets[len(Bulets)-1], Bulets[len(Bulets)-2])
-		Bulets = [][]game.Point{}
-		return r
+func IsBulletAlive(specle game.Point, b []game.Point) (game.Point, bool) {
+	for _, v := range b {
+		fmt.Println(v)
+		if math.Sqrt((math.Pow(float64(specle.X-v.X), 2) + math.Pow(float64(specle.Y-v.Y), 2))) <= BULLET_SPEED+1 {
+			return v, true
+		}
 	}
-	return true
+	return game.Point{}, false
 }

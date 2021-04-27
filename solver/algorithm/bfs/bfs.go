@@ -81,15 +81,6 @@ func (d *Bfs) Reachable(dst game.Point) bool {
 	return d.visited[dst]
 }
 
-// // Generates the full order in which nodes were traversed.
-// func (d *Bfs) Order() []game.Point {
-// 	// Force bfs termination
-// 	if !d.pending.Empty() {
-// 		d.search(game.Point{X: 32, Y: 32})
-// 	}
-// 	return d.order
-// }
-
 // Continues the bfs search from the last yield point, looking for dst.
 func (d *Bfs) search(dst game.Point)bool {
 	for !d.pending.Empty() {
