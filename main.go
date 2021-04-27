@@ -25,25 +25,31 @@ import (
 	"battlecity_test/game"
 	"battlecity_test/solver"
 	"log"
+	"time"
 )
 
 func main() {
 
 	//URL FOR PROD ;) https://epam-botchallenge.com/codenjoy-contest/board/player/qf4t9nh7yhww7507kyq6?code=260516936731504358
-	
+
 	browserURL := "https://practice.epam-botchallenge.com/codenjoy-contest/board/player/n8x403qatme2wqwyeajg?code=6999680204656435641&game=battlecity"
 
-	game, c := game.StartGame(browserURL)
-	b := game.GetBoard()
+	g, c := game.StartGame(browserURL)
+	b := g.GetBoard()
 	s := solver.New()
 
 	for {
 		select {
 		case <-c.Done:
-			log.Fatal("It's done")
+			g, c = game.StartGame(browserURL)
+			b = g.GetBoard()
+			s = solver.New()
+			
+			log.Println("CONNECTION LOST! RESTART!")
+			time.Sleep(1 * time.Second)
 		case <-c.Read:
 			// Set next move
-			game.SetNextAction(s.GetNextAction(b))
+			g.SetNextAction(s.GetNextAction(b))
 			c.Write <- struct{}{}
 		}
 	}

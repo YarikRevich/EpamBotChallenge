@@ -135,7 +135,6 @@ func Run(b *game.Board) *Middleware {
 		fmt.Println("TRAP")
 		m.AllowToShootForcibly()
 	case !m.Updation:
-		
 		m.CanShootMiddleware()
 		fmt.Println("NORMAL", m.Shoot)
 		m.ShouldMoveFireOrFireMoveMiddleware()

@@ -36,6 +36,7 @@ func updateMyCoords(c game.Point) {
 	MY_COORDS = c
 }
 
+//Just creates the graph ;) ...
 func createGraph(c game.Point, a []game.Point) *graph.Graph {
 
 	g := graph.New(600)
@@ -67,9 +68,30 @@ func createGraph(c game.Point, a []game.Point) *graph.Graph {
 	return g
 }
 
-func GetBestTactic(myCoords game.Point, destination game.Point, b *game.Board) (string, bool) {
+//Analises the graph and checks if the hero in the trap ...
+func analiseGraph(g *graph.Graph, myCoords game.Point, destination game.Point, b *game.Board)([]game.Point, bool) {
+	var trap bool
 
-	var TRAP bool
+	r := bfs.New(g, myCoords)
+
+	path := r.Path(destination)
+	if path == nil {
+
+		trap = true
+
+		a := b.GetBarriers()
+		a = append(a, myCoords)
+
+		g = createGraph(myCoords, a)
+		r = bfs.New(g, myCoords)
+	
+		path = r.Path(utils.GetTheNearestElement(myCoords, utils.GetWalls(b)))
+	}
+
+	return path, trap
+}
+
+func GetBestTactic(myCoords game.Point, destination game.Point, b *game.Board) (string, bool) {
 
 	if myCoords == EMPTY_COORDS {
 		myCoords = MY_COORDS
@@ -79,23 +101,11 @@ func GetBestTactic(myCoords game.Point, destination game.Point, b *game.Board) (
 	a = append(a, myCoords)
 
 	g := createGraph(myCoords, a)
-	r := bfs.New(g, myCoords)
-
-	path := r.Path(destination)
-	if path == nil {
-
-		TRAP = true
-
-		a = b.GetBarriers()
-		a = append(a, myCoords)
-
-		g = createGraph(myCoords, a)
-		r = bfs.New(g, myCoords)
-		path = r.Path(utils.GetTheNearestElement(myCoords, utils.GetWalls(b)))
-	}
+	
+	path, trap := analiseGraph(g, myCoords, destination, b)
 
 	if len(path) <= 1 {
-		return ZERO_TACTIC, TRAP
+		return ZERO_TACTIC, trap
 	}
 
 	top := game.Point{X: myCoords.X, Y: myCoords.Y + 1}
@@ -106,17 +116,17 @@ func GetBestTactic(myCoords game.Point, destination game.Point, b *game.Board) (
 	switch path[1] {
 	case top:
 		updateMyCoords(top)
-		return UP, TRAP
+		return UP, trap
 	case right:
 		updateMyCoords(right)
-		return RIGHT, TRAP
+		return RIGHT, trap
 	case left:
 		updateMyCoords(left)
-		return LEFT, TRAP
+		return LEFT, trap
 	case bottom:
 		updateMyCoords(bottom)
-		return DOWN, TRAP
+		return DOWN, trap
 	default:
-		return ZERO_TACTIC, TRAP
+		return ZERO_TACTIC, trap
 	}
 }
