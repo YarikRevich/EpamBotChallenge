@@ -77,11 +77,15 @@ func (m *Middleware) CanShootMiddleware() {
 		r = append(r, s)
 	}
 
+	n := []game.Point{}
+	n = append(n, m.Default.b.GetEnemies()...)
+	n = append(n, m.Default.b.GetAllPoints(game.RIVER, game.ICE, game.TREE, game.PRIZE, game.PRIZE_BREAKING_WALLS, game.PRIZE_IMMORTALITY, game.PRIZE_NO_SLIDING, game.PRIZE_VISIBILITY, game.PRIZE_WALKING_ON_WATER)...)
+
 	for _, a := range r {
 		if utils.IsWithin(a, m.Default.b.GetBarriers()) {
 			break
 		}
-		if utils.IsWithin(a, m.Default.b.GetEnemies()) {
+		if utils.IsWithin(a, n) {
 			m.Shoot = true
 		}
 	}
