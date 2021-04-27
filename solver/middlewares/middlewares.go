@@ -1,6 +1,7 @@
 package middlewares
 
 import (
+	"fmt"
 
 	"battlecity_test/direction"
 	"battlecity_test/game"
@@ -55,6 +56,7 @@ func (m *Middleware) CanShootMiddleware() {
 	}
 
 	s := m.Default.b.GetMe()
+	fmt.Println(s)
 	r := []game.Point{}
 
 	for {
@@ -77,15 +79,14 @@ func (m *Middleware) CanShootMiddleware() {
 		r = append(r, s)
 	}
 
-	n := []game.Point{}
-	n = append(n, m.Default.b.GetEnemies()...)
-	n = append(n, m.Default.b.GetAllPoints(game.RIVER, game.ICE, game.TREE, game.PRIZE, game.PRIZE_BREAKING_WALLS, game.PRIZE_IMMORTALITY, game.PRIZE_NO_SLIDING, game.PRIZE_VISIBILITY, game.PRIZE_WALKING_ON_WATER)...)
 
 	for _, a := range r {
+		fmt.Println(a)
 		if utils.IsWithin(a, m.Default.b.GetBarriers()) {
 			break
 		}
-		if utils.IsWithin(a, n) {
+		if utils.IsWithin(a, m.Default.b.GetEnemies()) {
+
 			m.Shoot = true
 		}
 	}
@@ -131,9 +132,12 @@ func Run(b *game.Board) *Middleware {
 
 	switch {
 	case m.Trap:
+		fmt.Println("TRAP")
 		m.AllowToShootForcibly()
 	case !m.Updation:
+		
 		m.CanShootMiddleware()
+		fmt.Println("NORMAL", m.Shoot)
 		m.ShouldMoveFireOrFireMoveMiddleware()
 	}
 	return m
