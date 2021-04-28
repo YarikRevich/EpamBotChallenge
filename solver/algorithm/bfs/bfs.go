@@ -1,7 +1,6 @@
 package bfs
 
 import (
-
 	"battlecity_test/game"
 	"battlecity_test/solver/algorithm/graph"
 
@@ -45,36 +44,41 @@ func New(g *graph.Graph, src game.Point) *Bfs {
 }
 
 // Generates the path from the source node to the destination.
-func (d *Bfs) Path(dst game.Point) []game.Point {
+func (d *Bfs) Path(dsts ...game.Point) []game.Point {
 
-	// Return nil if not reachable
-	if !d.Reachable(dst) {
-		return nil
-	}
-	// If reachable, but path not yet generated, create and cache
-	if cached, ok := d.paths[dst]; !ok {
-		for cur := dst; cur != d.source;{
-			d.builder.Push(cur)
-			cur = d.parents[cur]
-		}
-		d.builder.Push(d.source)
+	for _, dst := range dsts {
 
-		path := make([]game.Point, d.builder.Size())
-		for i := 0; i < len(path); i++ {
-			path[i] = d.builder.Pop().(game.Point)
+		// Return nil if not reachable
+		if !d.Reachable(dst) {
+			return nil
 		}
-		d.paths[dst] = path
-		return path
-	} else {
-		return cached
+		// If reachable, but path not yet generated, create and cache
+		if cached, ok := d.paths[dst]; !ok {
+			for cur := dst; cur != d.source; {
+				d.builder.Push(cur)
+				cur = d.parents[cur]
+			}
+			d.builder.Push(d.source)
+
+			path := make([]game.Point, d.builder.Size())
+			for i := 0; i < len(path); i++ {
+				path[i] = d.builder.Pop().(game.Point)
+			}
+			d.paths[dst] = path
+			return path
+		} else {
+			return cached
+		}
+		
 	}
+	return []game.Point{}
 }
 
 // Checks whether a given vertex is reachable from the source.
 func (d *Bfs) Reachable(dst game.Point) bool {
 	if !d.visited[dst] && !d.pending.Empty() {
 		f := d.search(dst)
-		if !f{
+		if !f {
 			return false
 		}
 	}
@@ -82,7 +86,7 @@ func (d *Bfs) Reachable(dst game.Point) bool {
 }
 
 // Continues the bfs search from the last yield point, looking for dst.
-func (d *Bfs) search(dst game.Point)bool {
+func (d *Bfs) search(dst game.Point) bool {
 	for !d.pending.Empty() {
 		// Fetch the next node, and visit if new
 		src := d.pending.Pop().(game.Point)

@@ -47,6 +47,24 @@ func (g *Graph) Connect(a, b game.Point) {
 	}
 }
 
+func RemoveConnection(a game.Point, b []game.Point)[]game.Point {
+	var i int
+	for in, v := range b{
+		if a == v{
+			i = in
+		}
+	}
+	return append(b[:i], b[i+1:]...)
+}
+
+func (g *Graph) Disconnect(a, b game.Point) {
+
+	g.edges[a] = RemoveConnection(b, g.edges[a])
+	if a != b {
+		g.edges[b] = RemoveConnection(a, g.edges[b])
+	}
+}
+
 func (g *Graph) Show()map[game.Point][]game.Point{
 	return g.edges
 }
