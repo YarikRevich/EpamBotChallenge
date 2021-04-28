@@ -1,8 +1,8 @@
 package utils
 
 import (
-	"fmt"
 	"battlecity_test/game"
+	"fmt"
 	"math"
 )
 
@@ -86,6 +86,17 @@ func IsWithin(a game.Point, b []game.Point) bool {
 
 }
 
+func IsWithinPrecision(a game.Point, b []game.Point, p int) bool {
+	//Checks whether a within b, but uses the precision
+
+	for _, v := range b {
+		if a == v {
+			return true
+		}
+	}
+	return false
+}
+
 func GetTheNearestElement(o game.Point, c []game.Point) game.Point {
 	var theBest game.Point
 	var theBestLength float64
@@ -109,7 +120,9 @@ func IsUpdatingProcess(e []game.Point) bool {
 	if (IsWithin(game.Point{X: 1, Y: 1}, e) &&
 		IsWithin(game.Point{X: 25, Y: 1}, e)) ||
 		(IsWithin(game.Point{X: 2, Y: 32}, e) &&
-			IsWithin(game.Point{X: 31, Y: 32}, e)) {
+			IsWithin(game.Point{X: 31, Y: 32}, e)) ||
+		(IsWithin(game.Point{X: 4, Y: 1}, e) &&
+			IsWithin(game.Point{X: 20, Y: 1}, e)) {
 		return true
 	}
 	return false
@@ -123,4 +136,24 @@ func IsBulletAlive(specle game.Point, b []game.Point) (game.Point, bool) {
 		}
 	}
 	return game.Point{}, false
+}
+
+func IsElementEnemy(a game.Element) bool {
+	return a == game.AI_TANK_DOWN ||
+		a == game.AI_TANK_LEFT ||
+		a == game.AI_TANK_PRIZE ||
+		a == game.AI_TANK_RIGHT ||
+		a == game.AI_TANK_UP ||
+		a == game.OTHER_TANK_DOWN ||
+		a == game.OTHER_TANK_LEFT ||
+		a == game.OTHER_TANK_RIGHT ||
+		a == game.OTHER_TANK_UP
+}
+
+func GetAvailableZoneToGo(b *game.Board) []game.Point {
+	return b.GetAllPoints(game.NONE, game.TREE, game.ICE, game.PRIZE, game.PRIZE_BREAKING_WALLS, game.PRIZE_IMMORTALITY, game.PRIZE_NO_SLIDING, game.PRIZE_VISIBILITY, game.PRIZE_WALKING_ON_WATER)
+}
+
+func ElementIs(a game.Point, b game.Element, c *game.Board) bool {
+	return c.GetAt(a) == b
 }

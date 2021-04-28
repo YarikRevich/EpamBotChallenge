@@ -1,6 +1,7 @@
 package algorithm
 
 import (
+	_ "fmt"
 	"math/rand"
 
 	"battlecity_test/game"
@@ -102,7 +103,6 @@ func analiseGraph(g *graph.Graph, myCoords game.Point, destination game.Point, b
 
 	r := bfs.New(g, myCoords)
 
-	// d := getTheAroundCoordsOfDestination(destination)
 	path := r.Path(destination)
 
 	if path == nil {

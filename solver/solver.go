@@ -54,7 +54,7 @@ func (s *Solver) GetNextAction(b *game.Board) action.Action {
 			}
 			return action.FireMove(m.Way)
 		}
-		 return action.Move(m.Way)
+		return action.Move(m.Way)
 	}
 
 	return action.DoNothing()

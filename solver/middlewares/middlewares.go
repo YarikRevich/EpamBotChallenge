@@ -5,6 +5,7 @@ import (
 	"battlecity_test/game"
 	"battlecity_test/solver/algorithm"
 	"battlecity_test/solver/utils"
+	"fmt"
 )
 
 type Default struct {
@@ -21,6 +22,8 @@ type Middleware struct {
 	Updation bool
 
 	Trap bool
+
+	Recession bool
 
 	Way      direction.Direction
 	Shoot    bool
@@ -82,6 +85,39 @@ func (m *Middleware) CanShootMiddleware() {
 			s = game.Point{X: s.X, Y: s.Y - 1}
 		}
 
+		var counter int
+
+		switch m.Way {
+		case direction.UP, direction.DOWN:
+			for counter != 2 {
+
+				right := game.Point{X: s.X + counter, Y: s.Y}
+				left := game.Point{X: s.X - counter, Y: s.Y}
+
+				if utils.IsElementEnemy(m.Default.b.GetAt(right)) {
+					r = append(r, right)
+				}
+				if utils.IsElementEnemy(m.Default.b.GetAt(left)) {
+					r = append(r, left)
+				}
+				counter++
+			}
+		case direction.RIGHT, direction.LEFT:
+			for counter != 2 {
+
+				top := game.Point{X: s.X, Y: s.Y + counter}
+				bottom := game.Point{X: s.X, Y: s.Y - counter}
+
+				if utils.IsElementEnemy(m.Default.b.GetAt(top)) {
+					r = append(r, top)
+				}
+				if utils.IsElementEnemy(m.Default.b.GetAt(bottom)) {
+					r = append(r, bottom)
+				}
+				counter++
+			}
+		}
+
 		r = append(r, s)
 	}
 
@@ -98,28 +134,42 @@ func (m *Middleware) CanShootMiddleware() {
 
 func (m *Middleware) ShouldMoveFireOrFireMoveMiddleware() {
 	a := m.Default.b.GetMe()
-	f := []game.Element{
-		game.AI_TANK_DOWN,
-		game.AI_TANK_LEFT,
-		game.AI_TANK_PRIZE,
-		game.AI_TANK_RIGHT,
-		game.AI_TANK_UP,
-		game.OTHER_TANK_DOWN,
-		game.OTHER_TANK_LEFT,
-		game.OTHER_TANK_RIGHT,
-		game.OTHER_TANK_UP,
-		game.PRIZE,
-		game.PRIZE_BREAKING_WALLS,
-		game.PRIZE_IMMORTALITY,
-		game.PRIZE_NO_SLIDING,
-		game.PRIZE_VISIBILITY,
-		game.PRIZE_WALKING_ON_WATER,
-	}
 
-	for _, v := range f {
-		if m.Default.b.IsNear(a, v) {
-			m.MoveFire = true
-		}
+	top := game.Point{X: a.X, Y: a.Y + 1}
+	right := game.Point{X: a.X + 1, Y: a.Y}
+	left := game.Point{X: a.X - 1, Y: a.Y}
+	down := game.Point{X: a.X, Y: a.Y - 1}
+
+	// f := []game.Element{
+	// 	game.AI_TANK_DOWN,
+	// 	game.AI_TANK_LEFT,
+	// 	game.AI_TANK_PRIZE,
+	// 	game.AI_TANK_RIGHT,
+	// 	game.AI_TANK_UP,
+	// 	game.OTHER_TANK_DOWN,
+	// 	game.OTHER_TANK_LEFT,
+	// 	game.OTHER_TANK_RIGHT,
+	// 	game.OTHER_TANK_UP,
+	// 	game.PRIZE,
+	// 	game.PRIZE_BREAKING_WALLS,
+	// 	game.PRIZE_IMMORTALITY,
+	// 	game.PRIZE_NO_SLIDING,
+	// 	game.PRIZE_VISIBILITY,
+	// 	game.PRIZE_WALKING_ON_WATER,
+	// }
+	switch {
+	case (utils.ElementIs(a, game.TANK_UP, m.Default.b) && utils.ElementIs(down, game.OTHER_TANK_UP, m.Default.b)) ||
+		(utils.ElementIs(a, game.TANK_UP, m.Default.b) && utils.ElementIs(down, game.AI_TANK_UP, m.Default.b)):
+		m.MoveFire = true
+	case (utils.ElementIs(a, game.TANK_DOWN, m.Default.b) && utils.ElementIs(top, game.OTHER_TANK_DOWN, m.Default.b)) ||
+		(utils.ElementIs(a, game.TANK_DOWN, m.Default.b) && utils.ElementIs(top, game.AI_TANK_DOWN, m.Default.b)):
+		m.MoveFire = true
+	case (utils.ElementIs(a, game.TANK_LEFT, m.Default.b) && utils.ElementIs(right, game.OTHER_TANK_LEFT, m.Default.b)) ||
+		(utils.ElementIs(a, game.TANK_LEFT, m.Default.b) && utils.ElementIs(right, game.AI_TANK_LEFT, m.Default.b)):
+		m.MoveFire = true
+	case (utils.ElementIs(a, game.TANK_RIGHT, m.Default.b) && utils.ElementIs(left, game.OTHER_TANK_RIGHT, m.Default.b)) ||
+		(utils.ElementIs(a, game.TANK_RIGHT, m.Default.b) && utils.ElementIs(left, game.AI_TANK_RIGHT, m.Default.b)):
+		m.MoveFire = true
 	}
 }
 
@@ -165,9 +215,48 @@ func (m *Middleware) RegBulletMiddleware() {
 func (m *Middleware) UpdateBulletMiddleware() {
 	if *m.MyBullet != algorithm.EMPTY_COORDS {
 		if n, ok := utils.IsBulletAlive(*m.MyBullet, m.Default.b.GetBullets()); ok {
+			fmt.Println("BULLET IS ALIVE")
 			*m.MyBullet = n
 		} else {
 			*m.MyBullet = algorithm.EMPTY_COORDS
+		}
+	}
+}
+
+func (m *Middleware) RecessionMiddleware() {
+	if *m.KD != 4 {
+
+		myCoords := m.Default.b.GetMe()
+
+		switch m.Way {
+		case direction.UP:
+			if utils.IsElementEnemy(m.Default.b.GetAt(game.Point{X: myCoords.X, Y: myCoords.Y + 1})) {
+				m.Recession = true
+			}
+		case direction.RIGHT:
+			if utils.IsElementEnemy(m.Default.b.GetAt(game.Point{X: myCoords.X + 1, Y: myCoords.Y})) {
+				m.Recession = true
+			}
+		case direction.LEFT:
+			if utils.IsElementEnemy(m.Default.b.GetAt(game.Point{X: myCoords.X - 1, Y: myCoords.Y})) {
+				m.Recession = true
+			}
+		case direction.DOWN:
+			if utils.IsElementEnemy(m.Default.b.GetAt(game.Point{X: myCoords.X, Y: myCoords.Y - 1})) {
+				m.Recession = true
+			}
+		}
+		if m.Recession {
+			switch {
+			case utils.IsWithin(game.Point{X: myCoords.X, Y: myCoords.Y + 1}, utils.GetAvailableZoneToGo(m.Default.b)):
+				m.Way = direction.UP
+			case utils.IsWithin(game.Point{X: myCoords.X + 1, Y: myCoords.Y}, utils.GetAvailableZoneToGo(m.Default.b)):
+				m.Way = direction.RIGHT
+			case utils.IsWithin(game.Point{X: myCoords.X - 1, Y: myCoords.Y}, utils.GetAvailableZoneToGo(m.Default.b)):
+				m.Way = direction.LEFT
+			case utils.IsWithin(game.Point{X: myCoords.X, Y: myCoords.Y - 1}, utils.GetAvailableZoneToGo(m.Default.b)):
+				m.Way = direction.DOWN
+			}
 		}
 	}
 }
@@ -178,10 +267,18 @@ func Run(b *game.Board, KD *int, MyBullet *game.Point) *Middleware {
 	m.KD = KD
 	m.MyBullet = MyBullet
 
+	m.RegKDMiddleware()
+
 	m.GetBestWayMiddleware()
 	m.UpdatingProcessMiddleware()
 
 	m.UpdateBulletMiddleware()
+
+	m.RecessionMiddleware()
+
+	if m.Recession {
+		return m
+	}
 
 	switch {
 	case m.Trap:
