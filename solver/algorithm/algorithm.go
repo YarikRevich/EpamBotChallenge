@@ -45,6 +45,10 @@ func getPointsOfBulletsAround(b []game.Point) []game.Point{
 			game.Point{X: v.X+2, Y: v.Y}, 
 			game.Point{X: v.X-2, Y: v.Y}, 
 			game.Point{X: v.X, Y: v.Y-2}, 
+			game.Point{X: v.X, Y: v.Y+1}, 
+			game.Point{X: v.X+1, Y: v.Y}, 
+			game.Point{X: v.X-1, Y: v.Y}, 
+			game.Point{X: v.X, Y: v.Y-1}, 
 		)
 	}
 	return r
@@ -108,7 +112,7 @@ func analiseGraph(g *graph.Graph, myCoords game.Point, destination game.Point, b
 	if path == nil {
 		trap = true
 
-		a := b.GetBarriers()
+		a := utils.GetWalls(b)
 		a = append(a, myCoords)
 
 		g = createGraph(myCoords, a, b.GetBullets())

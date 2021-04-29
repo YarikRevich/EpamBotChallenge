@@ -4,6 +4,7 @@ import (
 	"battlecity_test/game"
 	"fmt"
 	"math"
+	"math/rand"
 )
 
 const (
@@ -98,16 +99,28 @@ func IsWithinPrecision(a game.Point, b []game.Point, p int) bool {
 }
 
 func GetTheNearestElement(o game.Point, c []game.Point) game.Point {
-	var theBest game.Point
-	var theBestLength float64
+	theBest := c[rand.Intn(len(c)-1)]
+	theBestLength := math.Sqrt((math.Pow(float64(theBest.X-o.X), 2) + math.Pow(float64(theBest.Y-o.Y), 2)))
 
 	for _, v := range c {
-		if theBest.X == 0 && theBest.Y == 0 {
-			theBest = v
-			theBestLength = math.Sqrt((math.Pow(float64(v.X-o.X), 2) + math.Pow(float64(v.Y-o.Y), 2)))
-			continue
-		}
 		if n := math.Sqrt((math.Pow(float64(v.X-o.X), 2) + math.Pow(float64(v.Y-o.Y), 2))); n < theBestLength {
+			theBest = v
+			theBestLength = n
+		}
+	}
+	return theBest
+}
+
+func IsClearWayOut(o game.Point, c game.Point, b *game.Board)bool {
+	return true
+}
+
+func GetTheNearestWayOutWall(o game.Point, c []game.Point, b *game.Board) game.Point {
+	theBest := c[rand.Intn(len(c)-1)]
+	theBestLength := math.Sqrt((math.Pow(float64(theBest.X-o.X), 2) + math.Pow(float64(theBest.Y-o.Y), 2)))
+
+	for _, v := range c {
+		if n := math.Sqrt((math.Pow(float64(v.X-o.X), 2) + math.Pow(float64(v.Y-o.Y), 2))); (n < theBestLength) &&  IsClearWayOut(o, v, b){
 			theBest = v
 			theBestLength = n
 		}

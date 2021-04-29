@@ -22,8 +22,8 @@
 package solver
 
 import (
-
 	"battlecity_test/action"
+	"battlecity_test/direction"
 	"battlecity_test/game"
 	"battlecity_test/solver/middlewares"
 )
@@ -35,17 +35,19 @@ var (
 type Solver struct {
 	KD *int
 	MyBullet *game.Point
+	StaticWay *direction.Direction
 }
 
 func New() Solver {
 	var k int = 4
-	return Solver{KD: &k, MyBullet: new(game.Point)}
+	var d direction.Direction = direction.NONE
+	return Solver{KD: &k, MyBullet: new(game.Point), StaticWay: &d}
 }
 
 func (s *Solver) GetNextAction(b *game.Board) action.Action {
 	//todo: your code here
 
-	m := middlewares.Run(b, s.KD, s.MyBullet)
+	m := middlewares.Run(b, s.KD, s.MyBullet, s.StaticWay)
 
 	if m.Way.IsValid() {
 		if m.Shoot{
