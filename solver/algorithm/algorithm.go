@@ -1,7 +1,6 @@
 package algorithm
 
 import (
-	_ "fmt"
 	"math/rand"
 
 	"battlecity_test/game"
@@ -36,43 +35,15 @@ func isFreeAt(c game.Point, a []game.Point) bool {
 	return false
 }
 
-func getPointsOfBulletsAround(b []game.Point) []game.Point{
-	r := []game.Point{}
-	for _, v := range b{
-		r = append(
-			r, 
-			game.Point{X: v.X, Y: v.Y+2}, 
-			game.Point{X: v.X+2, Y: v.Y}, 
-			game.Point{X: v.X-2, Y: v.Y}, 
-			game.Point{X: v.X, Y: v.Y-2}, 
-			game.Point{X: v.X, Y: v.Y+1}, 
-			game.Point{X: v.X+1, Y: v.Y}, 
-			game.Point{X: v.X-1, Y: v.Y}, 
-			game.Point{X: v.X, Y: v.Y-1}, 
-		)
-	}
-	return r
-}
-
 func updateMyCoords(c game.Point) {
 	MY_COORDS = c
-}
-
-func getTheAroundCoordsOfDestination(d game.Point) []game.Point {
-	return []game.Point{
-		{X: d.X, Y: d.Y + 1},
-		{X: d.X + 1, Y: d.Y},
-		{X: d.X - 1, Y: d.Y},
-		{X: d.X, Y: d.Y - 1},
-		d,
-	}
 }
 
 //Just creates the graph ;) ...
 func createGraph(c game.Point, a []game.Point, b []game.Point) *graph.Graph {
 
 	g := graph.New(2000)
-	allBullets := getPointsOfBulletsAround(b)
+	// allBullets := getPointsOfBulletsAround(b)
 
 	for _, v := range a {
 
@@ -81,19 +52,19 @@ func createGraph(c game.Point, a []game.Point, b []game.Point) *graph.Graph {
 		left := game.Point{X: v.X - 1, Y: v.Y}
 		bottom := game.Point{X: v.X, Y: v.Y - 1}
 
-		if isFreeAt(top, a) && !utils.IsWithin(top, allBullets) {
+		if isFreeAt(top, a) {
 			g.Connect(v, top)
 		}
 
-		if isFreeAt(right, a) && !utils.IsWithin(right, allBullets) {
+		if isFreeAt(right, a) {
 			g.Connect(v, right)
 		}
 
-		if isFreeAt(left, a) && !utils.IsWithin(left, allBullets) {
+		if isFreeAt(left, a) {
 			g.Connect(v, left)
 		}
 
-		if isFreeAt(bottom, a) && !utils.IsWithin(bottom, allBullets) {
+		if isFreeAt(bottom, a) {
 			g.Connect(v, bottom)
 		}
 	}
@@ -102,29 +73,45 @@ func createGraph(c game.Point, a []game.Point, b []game.Point) *graph.Graph {
 }
 
 //Analises the graph and checks if the hero in the trap ...
-func analiseGraph(g *graph.Graph, myCoords game.Point, destination game.Point, b *game.Board) ([]game.Point, bool) {
-	var trap bool
+// func getPath(g *graph.Graph, myCoords game.Point, destination game.Point, b *game.Board) []game.Point {
 
-	r := bfs.New(g, myCoords)
+// 	return path
+// }
 
-	path := r.Path(destination)
+func exceptBullets(a []game.Point, b []game.Point) []game.Point {
+	for _, bullet := range b {
+		top := game.Point{X: bullet.X, Y: bullet.Y + 2}
+		right := game.Point{X: bullet.X + 2, Y: bullet.Y}
+		left := game.Point{X: bullet.X - 2, Y: bullet.Y}
+		bottom := game.Point{X: bullet.X, Y: bullet.Y - 2}
 
-	if path == nil {
-		trap = true
+		topNear := game.Point{X: bullet.X, Y: bullet.Y + 1}
+		rightNear := game.Point{X: bullet.X + 1, Y: bullet.Y}
+		leftNear := game.Point{X: bullet.X - 1, Y: bullet.Y}
+		bottomNear := game.Point{X: bullet.X, Y: bullet.Y - 1}
 
-		a := utils.GetWalls(b)
-		a = append(a, myCoords)
-
-		g = createGraph(myCoords, a, b.GetBullets())
-		r = bfs.New(g, myCoords)
-
-		path = r.Path(utils.GetTheNearestElement(myCoords, utils.GetWalls(b)))
+		for i, v := range a {
+			if v == top ||
+				v == right ||
+				v == left ||
+				v == bottom ||
+				v == bullet ||
+				v == topNear ||
+				v == rightNear ||
+				v == leftNear ||
+				v == bottomNear {
+				if len(a) > i {
+					a = append(a[:i], a[i+1:]...)
+				} else {
+					a = append(a[:i], a[len(a)-1:]...)
+				}
+			}
+		}
 	}
-
-	return path, trap
+	return a
 }
 
-func GetBestTactic(myCoords game.Point, myBullet game.Point, destination game.Point, b *game.Board) (string, bool) {
+func GetBestTactic(myCoords game.Point, myBullet game.Point, destination game.Point, b *game.Board) string {
 
 	if myCoords == EMPTY_COORDS {
 		if MY_COORDS != EMPTY_COORDS {
@@ -134,15 +121,28 @@ func GetBestTactic(myCoords game.Point, myBullet game.Point, destination game.Po
 		}
 	}
 
-	a := b.GetAllPoints(game.NONE, game.TREE, game.ICE, game.PRIZE, game.PRIZE_IMMORTALITY, game.PRIZE_BREAKING_WALLS, game.PRIZE_VISIBILITY, game.PRIZE_NO_SLIDING, game.PRIZE_WALKING_ON_WATER, game.OTHER_TANK_DOWN, game.OTHER_TANK_LEFT, game.OTHER_TANK_RIGHT, game.OTHER_TANK_UP, game.AI_TANK_DOWN, game.AI_TANK_LEFT, game.AI_TANK_RIGHT, game.AI_TANK_UP, game.AI_TANK_PRIZE)
+	a := b.GetAllPoints(utils.GetAvailableElements(b)...)
+	// a = exceptBullets(a, b.GetBullets())
 	a = append(a, myCoords, myBullet)
 
 	g := createGraph(myCoords, a, b.GetBullets())
 
-	path, trap := analiseGraph(g, myCoords, destination, b)
+	r := bfs.New(g, myCoords)
+	path := r.Path(destination)
+
+	if path == nil {
+		//IF IT IS A TRAP IT CREATES A NEW GRAPH AND FIND THE WAYOUT ...
+
+		a := b.GetAllPoints(append(utils.GetAvailableElements(b), utils.GetWallsElements(b)...)...)
+
+		g := createGraph(myCoords, a, b.GetBullets())
+
+		r := bfs.New(g, myCoords)
+		path = r.Path(utils.GetTheNearestElement(myCoords, utils.GetWalls(b), b))
+	}
 
 	if len(path) <= 1 {
-		return ZERO_TACTIC, trap
+		return ZERO_TACTIC
 	}
 
 	top := game.Point{X: myCoords.X, Y: myCoords.Y + 1}
@@ -153,17 +153,17 @@ func GetBestTactic(myCoords game.Point, myBullet game.Point, destination game.Po
 	switch path[1] {
 	case top:
 		updateMyCoords(top)
-		return UP, trap
+		return UP
 	case right:
 		updateMyCoords(right)
-		return RIGHT, trap
+		return RIGHT
 	case left:
 		updateMyCoords(left)
-		return LEFT, trap
+		return LEFT
 	case bottom:
 		updateMyCoords(bottom)
-		return DOWN, trap
+		return DOWN
 	default:
-		return ZERO_TACTIC, trap
+		return ZERO_TACTIC
 	}
 }

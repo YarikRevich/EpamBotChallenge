@@ -1,8 +1,6 @@
 package middlewares
 
 import (
-	"fmt"
-
 	"battlecity_test/direction"
 	"battlecity_test/game"
 	"battlecity_test/solver/algorithm"
@@ -22,7 +20,7 @@ type Middleware struct {
 
 	Updation bool
 
-	Trap bool
+	Trap      bool
 	StaticWay *direction.Direction
 
 	Recession bool
@@ -33,13 +31,12 @@ type Middleware struct {
 }
 
 func (m *Middleware) GetBestWayMiddleware() {
-	t, trap := algorithm.GetBestTactic(
+	t := algorithm.GetBestTactic(
 		m.Default.b.GetMe(),
 		*m.MyBullet,
-		utils.GetTheNearestElement(m.Default.b.GetMe(), m.Default.b.GetEnemies()),
+		utils.GetTheNearestElement(m.Default.b.GetMe(), utils.GetAvailableEnemies(m.Default.b.GetEnemies(), m.Default.b), m.Default.b),
 		m.Default.b,
 	)
-	m.Trap = trap
 
 	switch t {
 	case algorithm.UP:
@@ -56,9 +53,9 @@ func (m *Middleware) GetBestWayMiddleware() {
 }
 
 func (m *Middleware) TrapMiddleware() {
-	if *m.StaticWay == direction.NONE{
-		*m.StaticWay = m.Way
-	}
+	// if *m.StaticWay == direction.NONE{
+	// 	*m.StaticWay = m.Way
+	// }
 }
 
 func (m *Middleware) ResetTrapMiddleware() {
@@ -108,14 +105,10 @@ func (m *Middleware) CanShootMiddleware() {
 				left := game.Point{X: s.X - counter, Y: s.Y}
 
 				if utils.IsElementEnemy(m.Default.b.GetAt(right)) && utils.ElementIs(right, game.OTHER_TANK_LEFT, m.Default.b) ||
-					utils.IsElementEnemy(m.Default.b.GetAt(right)) && utils.ElementIs(right, game.AI_TANK_LEFT, m.Default.b) ||
-					utils.IsElementEnemy(m.Default.b.GetAt(right)) && utils.ElementIs(right, game.OTHER_TANK_RIGHT, m.Default.b) ||
-					utils.IsElementEnemy(m.Default.b.GetAt(right)) && utils.ElementIs(right, game.AI_TANK_RIGHT, m.Default.b) {
+					utils.IsElementEnemy(m.Default.b.GetAt(right)) && utils.ElementIs(right, game.AI_TANK_LEFT, m.Default.b) {
 					r = append(r, right)
 				}
-				if utils.IsElementEnemy(m.Default.b.GetAt(left)) && utils.ElementIs(left, game.OTHER_TANK_LEFT, m.Default.b) ||
-					utils.IsElementEnemy(m.Default.b.GetAt(left)) && utils.ElementIs(left, game.AI_TANK_LEFT, m.Default.b) ||
-					utils.IsElementEnemy(m.Default.b.GetAt(left)) && utils.ElementIs(left, game.OTHER_TANK_RIGHT, m.Default.b) ||
+				if utils.IsElementEnemy(m.Default.b.GetAt(left)) && utils.ElementIs(left, game.OTHER_TANK_RIGHT, m.Default.b) ||
 					utils.IsElementEnemy(m.Default.b.GetAt(left)) && utils.ElementIs(left, game.AI_TANK_RIGHT, m.Default.b) {
 					r = append(r, left)
 				}
@@ -127,16 +120,12 @@ func (m *Middleware) CanShootMiddleware() {
 				top := game.Point{X: s.X, Y: s.Y + counter}
 				bottom := game.Point{X: s.X, Y: s.Y - counter}
 
-				if utils.IsElementEnemy(m.Default.b.GetAt(top)) && utils.ElementIs(top, game.OTHER_TANK_UP, m.Default.b) ||
-					utils.IsElementEnemy(m.Default.b.GetAt(top)) && utils.ElementIs(top, game.AI_TANK_UP, m.Default.b) ||
-					utils.IsElementEnemy(m.Default.b.GetAt(top)) && utils.ElementIs(top, game.OTHER_TANK_DOWN, m.Default.b) ||
+				if utils.IsElementEnemy(m.Default.b.GetAt(top)) && utils.ElementIs(top, game.OTHER_TANK_DOWN, m.Default.b) ||
 					utils.IsElementEnemy(m.Default.b.GetAt(top)) && utils.ElementIs(top, game.AI_TANK_DOWN, m.Default.b) {
 					r = append(r, top)
 				}
 				if utils.IsElementEnemy(m.Default.b.GetAt(bottom)) && utils.ElementIs(bottom, game.OTHER_TANK_UP, m.Default.b) ||
-					utils.IsElementEnemy(m.Default.b.GetAt(bottom)) && utils.ElementIs(bottom, game.AI_TANK_UP, m.Default.b) ||
-					utils.IsElementEnemy(m.Default.b.GetAt(bottom)) && utils.ElementIs(bottom, game.OTHER_TANK_DOWN, m.Default.b) ||
-					utils.IsElementEnemy(m.Default.b.GetAt(bottom)) && utils.ElementIs(bottom, game.AI_TANK_DOWN, m.Default.b) {
+					utils.IsElementEnemy(m.Default.b.GetAt(bottom)) && utils.ElementIs(bottom, game.AI_TANK_UP, m.Default.b) {
 					r = append(r, bottom)
 				}
 
@@ -358,27 +347,25 @@ func Run(b *game.Board, KD *int, MyBullet *game.Point, StaticWay *direction.Dire
 		return m
 	}
 
-	fmt.Println(m.Updation)
+	// switch {
+	// case m.Trap:
+	// 	m.ResetKDMiddleware()
 
-	switch {
-	case m.Trap:
-		m.ResetKDMiddleware()
+	// 	m.TrapMiddleware()
+	// 	m.AllowToShootForcibly()
+	// default:
+	m.ResetTrapMiddleware()
 
-		m.TrapMiddleware()
-		m.AllowToShootForcibly()
-	default:
-		m.ResetTrapMiddleware()
+	m.CanShootMiddleware()
 
-		m.CanShootMiddleware()
+	if m.Shoot {
+		m.ResetKDMiddleware() // Resets KD to its beginning position ...
 
-		if m.Shoot {
-			m.ResetKDMiddleware() // Resets KD to its beginning position ...
+		m.ShouldMoveFireOrFireMoveMiddleware()
 
-			m.ShouldMoveFireOrFireMoveMiddleware()
+		m.RegBulletMiddleware() // Regs outcoming bullet ...
 
-			m.RegBulletMiddleware() // Regs outcoming bullet ...
-
-		}
 	}
+	// }
 	return m
 }

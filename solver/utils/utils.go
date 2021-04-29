@@ -1,8 +1,9 @@
 package utils
 
 import (
-	"battlecity_test/game"
 	"fmt"
+	"battlecity_test/direction"
+	"battlecity_test/game"
 	"math"
 	"math/rand"
 )
@@ -33,7 +34,11 @@ func GetAIEnemies(b *game.Board) []game.Point {
 }
 
 func GetWalls(b *game.Board) []game.Point {
-	return b.GetAllPoints(
+	return b.GetAllPoints(GetWallsElements(b)...)
+}
+
+func GetWallsElements(b *game.Board) []game.Element {
+	return []game.Element{
 		game.WALL,
 		game.WALL_DESTROYED_DOWN,
 		game.WALL_DESTROYED_UP,
@@ -52,7 +57,30 @@ func GetWalls(b *game.Board) []game.Point {
 		game.WALL_DESTROYED_RIGHT_UP,
 		game.WALL_DESTROYED_DOWN_LEFT,
 		game.WALL_DESTROYED_DOWN_RIGHT,
-	)
+	}
+}
+
+func GetAvailableElements(b *game.Board) []game.Element {
+	return []game.Element{
+		game.NONE,
+		game.TREE,
+		game.ICE,
+		game.PRIZE,
+		game.PRIZE_IMMORTALITY,
+		game.PRIZE_BREAKING_WALLS,
+		game.PRIZE_VISIBILITY,
+		game.PRIZE_NO_SLIDING,
+		game.PRIZE_WALKING_ON_WATER,
+		game.OTHER_TANK_DOWN,
+		game.OTHER_TANK_LEFT,
+		game.OTHER_TANK_RIGHT,
+		game.OTHER_TANK_UP,
+		game.AI_TANK_DOWN,
+		game.AI_TANK_LEFT,
+		game.AI_TANK_RIGHT,
+		game.AI_TANK_UP,
+		game.AI_TANK_PRIZE,
+	}
 }
 
 func CheckEqual(a, b []game.Point) bool {
@@ -98,11 +126,30 @@ func IsWithinPrecision(a game.Point, b []game.Point, p int) bool {
 	return false
 }
 
-func GetTheNearestElement(o game.Point, c []game.Point) game.Point {
+func GetAvailableEnemies(a []game.Point, b *game.Board)[]game.Point{
+	var r []game.Point
+
+	q := b.GetAllPoints(GetAvailableElements(b)...)
+	for _, enemy := range a{
+		for _, available := range q{
+			if enemy == available{
+				r = append(r, enemy)
+			}
+		}
+	}
+	return r
+}
+
+func GetTheNearestElement(o game.Point, c []game.Point, b *game.Board) game.Point {
 	theBest := c[rand.Intn(len(c)-1)]
 	theBestLength := math.Sqrt((math.Pow(float64(theBest.X-o.X), 2) + math.Pow(float64(theBest.Y-o.Y), 2)))
 
 	for _, v := range c {
+		// for _, q := range b.GetAllPoints(GetAvailableElements(b)...){
+		// 	if v !=  q{
+		// 		continue loop
+		// 	}
+		// }
 		if n := math.Sqrt((math.Pow(float64(v.X-o.X), 2) + math.Pow(float64(v.Y-o.Y), 2))); n < theBestLength {
 			theBest = v
 			theBestLength = n
@@ -111,21 +158,86 @@ func GetTheNearestElement(o game.Point, c []game.Point) game.Point {
 	return theBest
 }
 
-func IsClearWayOut(o game.Point, c game.Point, b *game.Board)bool {
-	return true
-}
+func IsWithinElements(a game.Element, b []game.Element) bool {
 
-func GetTheNearestWayOutWall(o game.Point, c []game.Point, b *game.Board) game.Point {
-	theBest := c[rand.Intn(len(c)-1)]
-	theBestLength := math.Sqrt((math.Pow(float64(theBest.X-o.X), 2) + math.Pow(float64(theBest.Y-o.Y), 2)))
-
-	for _, v := range c {
-		if n := math.Sqrt((math.Pow(float64(v.X-o.X), 2) + math.Pow(float64(v.Y-o.Y), 2))); (n < theBestLength) &&  IsClearWayOut(o, v, b){
-			theBest = v
-			theBestLength = n
+	for _, v := range b {
+		if a == v {
+			return true
 		}
 	}
-	return theBest
+	return false
+}
+
+func IsClearWayOut(o game.Point, c game.Point, b *game.Board) bool {
+
+	var d direction.Direction
+
+	switch {
+	case o.X <= c.X:
+		d = direction.RIGHT
+	case o.X >= c.X:
+		d = direction.LEFT
+	case o.Y <= c.Y:
+		d = direction.UP
+	case o.Y >= c.Y:
+		d = direction.DOWN
+	}
+
+	fmt.Println(d)
+	start := c
+
+	a := GetAvailableElements(b)
+	n := GetWallsElements(b)
+
+	for {
+		switch d {
+		case direction.UP:
+			top := game.Point{X: start.X, Y: start.Y + 1}
+			e := b.GetAt(top)
+
+			if IsWithinElements(e, n) {
+				start = top
+			} else if IsWithinElements(e, a) {
+				return true
+			} else {
+				return false
+			}
+
+		case direction.RIGHT:
+			right := game.Point{X: start.X + 1, Y: start.Y}
+			e := b.GetAt(right)
+
+			if IsWithinElements(e, n) {
+				start = right
+			} else if IsWithinElements(e, a) {
+				return true
+			} else {
+				return false
+			}
+		case direction.LEFT:
+			left := game.Point{X: start.X - 1, Y: start.Y}
+			e := b.GetAt(left)
+
+			if IsWithinElements(e, n) {
+				start = left
+			} else if IsWithinElements(e, a) {
+				return true
+			} else {
+				return false
+			}
+		case direction.DOWN:
+			bottom := game.Point{X: start.X, Y: start.Y - 1}
+			e := b.GetAt(bottom)
+
+			if IsWithinElements(e, n) {
+				start = bottom
+			} else if IsWithinElements(e, a) {
+				return true
+			} else {
+				return false
+			}
+		}
+	}
 }
 
 func IsUpdatingProcess(e []game.Point) bool {
@@ -143,7 +255,6 @@ func IsUpdatingProcess(e []game.Point) bool {
 
 func IsBulletAlive(specle game.Point, b []game.Point) (game.Point, bool) {
 	for _, v := range b {
-		fmt.Println(v)
 		if math.Sqrt((math.Pow(float64(specle.X-v.X), 2) + math.Pow(float64(specle.Y-v.Y), 2))) <= BULLET_SPEED+1 {
 			return v, true
 		}

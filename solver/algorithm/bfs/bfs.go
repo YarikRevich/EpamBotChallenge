@@ -1,6 +1,7 @@
 package bfs
 
 import (
+	"fmt"
 	"battlecity_test/game"
 	"battlecity_test/solver/algorithm/graph"
 
@@ -50,6 +51,7 @@ func (d *Bfs) Path(dsts ...game.Point) []game.Point {
 
 		// Return nil if not reachable
 		if !d.Reachable(dst) {
+			fmt.Println("NOT REACHABLE", dst)
 			return nil
 		}
 		// If reachable, but path not yet generated, create and cache

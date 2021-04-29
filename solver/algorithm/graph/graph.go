@@ -70,8 +70,8 @@ func (g *Graph) Show()map[game.Point][]game.Point{
 }
 
 // // Executes a function for every neighbor of a vertex.
-func (g *Graph) Do(v game.Point, f func(interface{})) {
-	for _, v := range g.edges[v]{
+func (g *Graph) Do(vert game.Point, f func(interface{})) {
+	for _, v := range g.edges[vert]{
 		f(v)
 	}
 }

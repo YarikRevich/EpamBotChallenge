@@ -32,7 +32,7 @@ func main() {
 
 	//URL FOR PROD ;) https://epam-botchallenge.com/codenjoy-contest/board/player/qf4t9nh7yhww7507kyq6?code=260516936731504358
 
-	browserURL := "https://practice.epam-botchallenge.com/codenjoy-contest/board/player/n8x403qatme2wqwyeajg?code=6999680204656435641&game=battlecity"
+	browserURL := "https://epam-botchallenge.com/codenjoy-contest/board/player/qf4t9nh7yhww7507kyq6?code=260516936731504358"
 
 	g, c := game.StartGame(browserURL)
 	b := g.GetBoard()
