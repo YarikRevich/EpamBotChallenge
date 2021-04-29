@@ -1,6 +1,7 @@
 package algorithm
 
 import (
+	"fmt"
 	"math/rand"
 
 	"battlecity_test/game"
@@ -132,13 +133,13 @@ func GetBestTactic(myCoords game.Point, myBullet game.Point, destination game.Po
 
 	if path == nil {
 		//IF IT IS A TRAP IT CREATES A NEW GRAPH AND FIND THE WAYOUT ...
+		fmt.Println("TRAP")
+		// a := b.GetAllPoints(append(utils.GetAvailableElements(b), utils.GetWallsElements(b)...)...)
 
-		a := b.GetAllPoints(append(utils.GetAvailableElements(b), utils.GetWallsElements(b)...)...)
+		// g := createGraph(myCoords, a, b.GetBullets())
 
-		g := createGraph(myCoords, a, b.GetBullets())
-
-		r := bfs.New(g, myCoords)
-		path = r.Path(utils.GetTheNearestElement(myCoords, utils.GetWalls(b), b))
+		// r := bfs.New(g, myCoords)
+		// path = r.Path(utils.GetTheNearestElement(myCoords, utils.GetWalls(b), b))
 	}
 
 	if len(path) <= 1 {

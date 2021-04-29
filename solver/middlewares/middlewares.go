@@ -5,6 +5,7 @@ import (
 	"battlecity_test/game"
 	"battlecity_test/solver/algorithm"
 	"battlecity_test/solver/utils"
+	// "fmt"
 )
 
 type Default struct {
@@ -52,10 +53,76 @@ func (m *Middleware) GetBestWayMiddleware() {
 	}
 }
 
-func (m *Middleware) TrapMiddleware() {
-	// if *m.StaticWay == direction.NONE{
-	// 	*m.StaticWay = m.Way
-	// }
+func (m *Middleware) AvoidOuterBullets() {
+
+	my := m.Default.b.GetMe()
+
+	top := game.Point{X: my.X, Y: my.Y + 2}
+	right := game.Point{X: my.X + 2, Y: my.Y}
+	left := game.Point{X: my.X - 2, Y: my.Y}
+	bottom := game.Point{X: my.X, Y: my.Y - 2}
+
+	topItem := m.Default.b.GetAt(top)
+	rightItem := m.Default.b.GetAt(right)
+	leftItem := m.Default.b.GetAt(left)
+	bottomItem := m.Default.b.GetAt(bottom)
+
+	n := utils.GetNoneElements(m.Default.b)
+
+	switch m.Way {
+	case direction.UP:
+		if topItem != game.BULLET {
+			return
+		}
+
+		switch {
+		case utils.IsWithinElements(rightItem, n) && right != *m.MyBullet:
+			m.Way = direction.RIGHT
+		case utils.IsWithinElements(leftItem, n) && left != *m.MyBullet:
+			m.Way = direction.LEFT
+		case utils.IsWithinElements(bottomItem, n) && bottom != *m.MyBullet:
+			m.Way = direction.DOWN
+		}
+	case direction.RIGHT:
+		if rightItem != game.BULLET {
+			return
+		}
+
+		switch {
+		case utils.IsWithinElements(topItem, n) && top != *m.MyBullet:
+			m.Way = direction.UP
+		case utils.IsWithinElements(leftItem, n) && left != *m.MyBullet:
+			m.Way = direction.LEFT
+		case utils.IsWithinElements(bottomItem, n) && bottom != *m.MyBullet:
+			m.Way = direction.DOWN
+		}
+	case direction.LEFT:
+		if leftItem != game.BULLET {
+			return
+		}
+
+		switch {
+		case utils.IsWithinElements(topItem, n) && top != *m.MyBullet:
+			m.Way = direction.UP
+		case utils.IsWithinElements(rightItem, n) && right != *m.MyBullet:
+			m.Way = direction.RIGHT
+		case utils.IsWithinElements(bottomItem, n) && bottom != *m.MyBullet:
+			m.Way = direction.DOWN
+		}
+	case direction.DOWN:
+		if bottomItem != game.BULLET {
+			return
+		}
+
+		switch {
+		case utils.IsWithinElements(topItem, n) && top != *m.MyBullet:
+			m.Way = direction.UP
+		case utils.IsWithinElements(rightItem, n) && right != *m.MyBullet:
+			m.Way = direction.RIGHT
+		case utils.IsWithinElements(leftItem, n) && left != *m.MyBullet:
+			m.Way = direction.LEFT
+		}
+	}
 }
 
 func (m *Middleware) ResetTrapMiddleware() {
@@ -65,7 +132,6 @@ func (m *Middleware) ResetTrapMiddleware() {
 func (m *Middleware) UpdatingProcessMiddleware() {
 	if utils.IsUpdatingProcess(utils.GetAIEnemies(m.Default.b)) {
 		m.Updation = true
-		m.Way = direction.NONE
 	}
 }
 
@@ -77,8 +143,13 @@ func (m *Middleware) CanShootMiddleware() {
 
 	s := m.Default.b.GetMe()
 	r := []game.Point{}
+	var rowNum int
 
 	for {
+
+		if rowNum == 6{
+			break
+		}
 
 		if utils.IsBattleWall(s, m.Default.b.GetAllPoints(game.BATTLE_WALL)) {
 			break
@@ -114,6 +185,7 @@ func (m *Middleware) CanShootMiddleware() {
 				}
 				counter++
 			}
+
 		case direction.RIGHT, direction.LEFT:
 			for counter != 2 {
 
@@ -129,17 +201,13 @@ func (m *Middleware) CanShootMiddleware() {
 					r = append(r, bottom)
 				}
 
-				if utils.IsElementEnemy(m.Default.b.GetAt(top)) {
-					r = append(r, top)
-				}
-				if utils.IsElementEnemy(m.Default.b.GetAt(bottom)) {
-					r = append(r, bottom)
-				}
 				counter++
 			}
 		}
 
 		r = append(r, s)
+
+		rowNum++
 	}
 
 	for _, a := range r {
@@ -156,85 +224,25 @@ func (m *Middleware) CanShootMiddleware() {
 func (m *Middleware) ShouldMoveFireOrFireMoveMiddleware() {
 	a := m.Default.b.GetMe()
 
-	top := game.Point{X: a.X, Y: a.Y + 1}
-	right := game.Point{X: a.X + 1, Y: a.Y}
-	left := game.Point{X: a.X - 1, Y: a.Y}
-	down := game.Point{X: a.X, Y: a.Y - 1}
-
 	for i := 2; i >= 0; i-- {
+
+		top := game.Point{X: a.X, Y: a.Y + 1}
+		right := game.Point{X: a.X + 1, Y: a.Y}
+		left := game.Point{X: a.X - 1, Y: a.Y}
+		bottom := game.Point{X: a.X, Y: a.Y - 1}
 
 		if m.MoveFire {
 			break
 		}
 
-		switch {
-		case (utils.ElementIs(a, game.TANK_UP, m.Default.b) && utils.ElementIs(down, game.OTHER_TANK_UP, m.Default.b)) ||
-			(utils.ElementIs(a, game.TANK_UP, m.Default.b) && utils.ElementIs(down, game.AI_TANK_UP, m.Default.b)):
-			m.MoveFire = true
-		case (utils.ElementIs(a, game.TANK_DOWN, m.Default.b) && utils.ElementIs(top, game.OTHER_TANK_DOWN, m.Default.b)) ||
-			(utils.ElementIs(a, game.TANK_DOWN, m.Default.b) && utils.ElementIs(top, game.AI_TANK_DOWN, m.Default.b)):
-			m.MoveFire = true
-		case (utils.ElementIs(a, game.TANK_LEFT, m.Default.b) && utils.ElementIs(right, game.OTHER_TANK_LEFT, m.Default.b)) ||
-			(utils.ElementIs(a, game.TANK_LEFT, m.Default.b) && utils.ElementIs(right, game.AI_TANK_LEFT, m.Default.b)):
-			m.MoveFire = true
-		case (utils.ElementIs(a, game.TANK_RIGHT, m.Default.b) && utils.ElementIs(left, game.OTHER_TANK_RIGHT, m.Default.b)) ||
-			(utils.ElementIs(a, game.TANK_RIGHT, m.Default.b) && utils.ElementIs(left, game.AI_TANK_RIGHT, m.Default.b)):
-			m.MoveFire = true
-		case (utils.ElementIs(a, game.TANK_UP, m.Default.b) && utils.ElementIs(right, game.OTHER_TANK_UP, m.Default.b)) ||
-			(utils.ElementIs(a, game.TANK_UP, m.Default.b) && utils.ElementIs(right, game.AI_TANK_UP, m.Default.b)):
-			m.MoveFire = true
-
-		case (utils.ElementIs(a, game.TANK_UP, m.Default.b) && utils.ElementIs(right, game.OTHER_TANK_DOWN, m.Default.b)) ||
-			(utils.ElementIs(a, game.TANK_UP, m.Default.b) && utils.ElementIs(right, game.AI_TANK_DOWN, m.Default.b)):
-			m.MoveFire = true
-		case (utils.ElementIs(a, game.TANK_UP, m.Default.b) && utils.ElementIs(left, game.OTHER_TANK_DOWN, m.Default.b)) ||
-			(utils.ElementIs(a, game.TANK_UP, m.Default.b) && utils.ElementIs(left, game.AI_TANK_DOWN, m.Default.b)):
-			m.MoveFire = true
-		case (utils.ElementIs(a, game.TANK_DOWN, m.Default.b) && utils.ElementIs(right, game.OTHER_TANK_DOWN, m.Default.b)) ||
-			(utils.ElementIs(a, game.TANK_DOWN, m.Default.b) && utils.ElementIs(right, game.AI_TANK_DOWN, m.Default.b)):
-			m.MoveFire = true
-		case (utils.ElementIs(a, game.TANK_DOWN, m.Default.b) && utils.ElementIs(left, game.OTHER_TANK_DOWN, m.Default.b)) ||
-			(utils.ElementIs(a, game.TANK_DOWN, m.Default.b) && utils.ElementIs(left, game.AI_TANK_DOWN, m.Default.b)):
-			m.MoveFire = true
-
-		case (utils.ElementIs(a, game.TANK_DOWN, m.Default.b) && utils.ElementIs(right, game.OTHER_TANK_DOWN, m.Default.b)) ||
-			(utils.ElementIs(a, game.TANK_DOWN, m.Default.b) && utils.ElementIs(right, game.AI_TANK_DOWN, m.Default.b)):
-			m.MoveFire = true
-		case (utils.ElementIs(a, game.TANK_DOWN, m.Default.b) && utils.ElementIs(left, game.OTHER_TANK_DOWN, m.Default.b)) ||
-			(utils.ElementIs(a, game.TANK_DOWN, m.Default.b) && utils.ElementIs(left, game.AI_TANK_DOWN, m.Default.b)):
-			m.MoveFire = true
-		case (utils.ElementIs(a, game.TANK_UP, m.Default.b) && utils.ElementIs(right, game.OTHER_TANK_DOWN, m.Default.b)) ||
-			(utils.ElementIs(a, game.TANK_UP, m.Default.b) && utils.ElementIs(right, game.AI_TANK_DOWN, m.Default.b)):
-			m.MoveFire = true
-		case (utils.ElementIs(a, game.TANK_DOWN, m.Default.b) && utils.ElementIs(left, game.OTHER_TANK_DOWN, m.Default.b)) ||
-			(utils.ElementIs(a, game.TANK_DOWN, m.Default.b) && utils.ElementIs(left, game.AI_TANK_DOWN, m.Default.b)):
-			m.MoveFire = true
-
-		case (utils.ElementIs(a, game.TANK_RIGHT, m.Default.b) && utils.ElementIs(down, game.OTHER_TANK_RIGHT, m.Default.b)) ||
-			(utils.ElementIs(a, game.TANK_RIGHT, m.Default.b) && utils.ElementIs(down, game.AI_TANK_RIGHT, m.Default.b)):
-			m.MoveFire = true
-		case (utils.ElementIs(a, game.TANK_RIGHT, m.Default.b) && utils.ElementIs(down, game.OTHER_TANK_LEFT, m.Default.b)) ||
-			(utils.ElementIs(a, game.TANK_RIGHT, m.Default.b) && utils.ElementIs(down, game.AI_TANK_LEFT, m.Default.b)):
-			m.MoveFire = true
-		case (utils.ElementIs(a, game.TANK_LEFT, m.Default.b) && utils.ElementIs(down, game.OTHER_TANK_RIGHT, m.Default.b)) ||
-			(utils.ElementIs(a, game.TANK_LEFT, m.Default.b) && utils.ElementIs(down, game.AI_TANK_RIGHT, m.Default.b)):
-			m.MoveFire = true
-		case (utils.ElementIs(a, game.TANK_LEFT, m.Default.b) && utils.ElementIs(down, game.OTHER_TANK_LEFT, m.Default.b)) ||
-			(utils.ElementIs(a, game.TANK_LEFT, m.Default.b) && utils.ElementIs(down, game.AI_TANK_LEFT, m.Default.b)):
-			m.MoveFire = true
-
-		case (utils.ElementIs(a, game.TANK_RIGHT, m.Default.b) && utils.ElementIs(top, game.OTHER_TANK_RIGHT, m.Default.b)) ||
-			(utils.ElementIs(a, game.TANK_RIGHT, m.Default.b) && utils.ElementIs(top, game.AI_TANK_RIGHT, m.Default.b)):
-			m.MoveFire = true
-		case (utils.ElementIs(a, game.TANK_RIGHT, m.Default.b) && utils.ElementIs(top, game.OTHER_TANK_LEFT, m.Default.b)) ||
-			(utils.ElementIs(a, game.TANK_RIGHT, m.Default.b) && utils.ElementIs(top, game.AI_TANK_LEFT, m.Default.b)):
-			m.MoveFire = true
-		case (utils.ElementIs(a, game.TANK_LEFT, m.Default.b) && utils.ElementIs(top, game.OTHER_TANK_RIGHT, m.Default.b)) ||
-			(utils.ElementIs(a, game.TANK_LEFT, m.Default.b) && utils.ElementIs(top, game.AI_TANK_RIGHT, m.Default.b)):
-			m.MoveFire = true
-		case (utils.ElementIs(a, game.TANK_LEFT, m.Default.b) && utils.ElementIs(top, game.OTHER_TANK_LEFT, m.Default.b)) ||
-			(utils.ElementIs(a, game.TANK_LEFT, m.Default.b) && utils.ElementIs(top, game.AI_TANK_LEFT, m.Default.b)):
-			m.MoveFire = true
+		for _, tankOr := range []game.Element{game.TANK_UP, game.TANK_RIGHT, game.TANK_LEFT, game.TANK_DOWN} {
+			for _, enemyPos := range []game.Point{top, right, left, bottom}{
+				for _, enemyOr := range []game.Element{game.AI_TANK_UP, game.AI_TANK_RIGHT, game.AI_TANK_LEFT, game.AI_TANK_DOWN, game.OTHER_TANK_UP, game.OTHER_TANK_RIGHT, game.OTHER_TANK_LEFT, game.OTHER_TANK_DOWN}{
+					if utils.ElementIs(a, tankOr, m.Default.b) && utils.ElementIs(enemyPos, enemyOr, m.Default.b){
+						m.MoveFire = true
+					}
+				}
+			}
 		}
 	}
 }
@@ -337,6 +345,8 @@ func Run(b *game.Board, KD *int, MyBullet *game.Point, StaticWay *direction.Dire
 
 	m.GetBestWayMiddleware()
 
+	m.AvoidOuterBullets()
+
 	m.UpdatingProcessMiddleware()
 
 	m.UpdateBulletMiddleware()
@@ -347,25 +357,23 @@ func Run(b *game.Board, KD *int, MyBullet *game.Point, StaticWay *direction.Dire
 		return m
 	}
 
-	// switch {
-	// case m.Trap:
-	// 	m.ResetKDMiddleware()
+	switch {
+	case m.Updation:
+		m.ResetKDMiddleware()
 
-	// 	m.TrapMiddleware()
-	// 	m.AllowToShootForcibly()
-	// default:
-	m.ResetTrapMiddleware()
+	default:
+		m.ResetTrapMiddleware()
 
-	m.CanShootMiddleware()
+		m.CanShootMiddleware()
 
-	if m.Shoot {
-		m.ResetKDMiddleware() // Resets KD to its beginning position ...
+		if m.Shoot {
+			m.ResetKDMiddleware() // Resets KD to its beginning position ...
 
-		m.ShouldMoveFireOrFireMoveMiddleware()
+			m.ShouldMoveFireOrFireMoveMiddleware()
 
-		m.RegBulletMiddleware() // Regs outcoming bullet ...
+			m.RegBulletMiddleware() // Regs outcoming bullet ...
 
+		}
 	}
-	// }
 	return m
 }
