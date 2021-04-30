@@ -261,7 +261,9 @@ func IsUpdatingProcess(e []game.Point) bool {
 		(IsWithin(game.Point{X: 2, Y: 32}, e) &&
 			IsWithin(game.Point{X: 31, Y: 32}, e)) ||
 		(IsWithin(game.Point{X: 4, Y: 1}, e) &&
-			IsWithin(game.Point{X: 20, Y: 1}, e)) {
+			IsWithin(game.Point{X: 20, Y: 1}, e)) ||
+		(IsWithin(game.Point{X: 1, Y: 1}, e) &&
+			IsWithin(game.Point{X: 25, Y: 1}, e)) {
 		return true
 	}
 	return false

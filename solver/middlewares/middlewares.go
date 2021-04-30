@@ -5,7 +5,7 @@ import (
 	"battlecity_test/game"
 	"battlecity_test/solver/algorithm"
 	"battlecity_test/solver/utils"
-	// "fmt"
+	_ "fmt"
 )
 
 type Default struct {
@@ -39,6 +39,8 @@ func (m *Middleware) GetBestWayMiddleware() {
 		m.Default.b,
 	)
 
+	
+
 	switch t {
 	case algorithm.UP:
 		m.Way = direction.UP
@@ -48,8 +50,9 @@ func (m *Middleware) GetBestWayMiddleware() {
 		m.Way = direction.LEFT
 	case algorithm.DOWN:
 		m.Way = direction.DOWN
-	default:
-		m.Way = direction.NONE
+	case algorithm.ZERO_TACTIC:
+		m.Way = direction.LEFT
+		m.AllowToShootForcibly()
 	}
 }
 
@@ -57,65 +60,56 @@ func (m *Middleware) AvoidOuterBulletsMiddleware() {
 
 	my := m.Default.b.GetMe()
 
-	t := game.Point{X: my.X, Y: my.Y + 1}
-	r := game.Point{X: my.X + 1, Y: my.Y}
-	l := game.Point{X: my.X - 1, Y: my.Y}
-	b := game.Point{X: my.X, Y: my.Y - 1}
+	top := game.Point{X: my.X, Y: my.Y + 1}
+	right := game.Point{X: my.X + 1, Y: my.Y}
+	left := game.Point{X: my.X - 1, Y: my.Y}
+	bottom := game.Point{X: my.X, Y: my.Y - 1}
 
-	top := game.Point{X: my.X, Y: my.Y + 2}
-	right := game.Point{X: my.X + 2, Y: my.Y}
-	left := game.Point{X: my.X - 2, Y: my.Y}
-	bottom := game.Point{X: my.X, Y: my.Y - 2}
+	topTop := game.Point{X: top.X, Y: top.Y + 1}
+	topRight := game.Point{X: top.X + 1, Y: top.Y}
+	topLeft := game.Point{X: top.X - 1, Y: top.Y}
+
+	rightTop := game.Point{X: right.X, Y: right.Y + 1}
+	rightRight := game.Point{X: right.X + 1, Y: right.Y}
+	rightBottom := game.Point{X: right.X, Y: right.Y - 1}
+
+	leftTop := game.Point{X: left.X, Y: left.Y + 1}
+	leftLeft := game.Point{X: left.X - 1, Y: left.Y}
+	leftBottom := game.Point{X: left.X, Y: left.Y - 1}
+
+	bottomBottom := game.Point{X: bottom.X, Y: bottom.Y - 1}
+	bottomRight := game.Point{X: bottom.X + 1, Y: bottom.Y}
+	bottomLeft := game.Point{X: bottom.X - 1, Y: bottom.Y}
 
 	topItem := m.Default.b.GetAt(top)
-	//Zone to evaluate the top way to go
-
-	topTopItem := m.Default.b.GetAt(game.Point{X: t.X, Y: t.Y + 1})
-	topRightItem := m.Default.b.GetAt(game.Point{X: t.X + 1, Y: t.Y})
-	topLeftItem := m.Default.b.GetAt(game.Point{X: t.X - 1, Y: t.Y})
-
-	topTopTopItem := m.Default.b.GetAt(game.Point{X: t.X, Y: t.Y + 2})
-	topTopRightItem := m.Default.b.GetAt(game.Point{X: t.X + 2, Y: t.Y})
-	topTopLeftItem := m.Default.b.GetAt(game.Point{X: t.X - 2, Y: t.Y})
-
 	rightItem := m.Default.b.GetAt(right)
-	//Zone to evaluate the right way to go
-
-	rightTopItem := m.Default.b.GetAt(game.Point{X: r.X, Y: r.Y + 1})
-	rightRightItem := m.Default.b.GetAt(game.Point{X: r.X + 1, Y: r.Y})
-	rightBottomItem := m.Default.b.GetAt(game.Point{X: r.X, Y: r.Y - 1})
-
-	rightRightTopItem := m.Default.b.GetAt(game.Point{X: r.X, Y: r.Y + 2})
-	rightRightRightItem := m.Default.b.GetAt(game.Point{X: r.X + 2, Y: r.Y})
-	rightRightBottomItem := m.Default.b.GetAt(game.Point{X: r.X, Y: r.Y - 2})
-
 	leftItem := m.Default.b.GetAt(left)
-	//Zone to evaluate the left way to go
-
-	leftTopItem := m.Default.b.GetAt(game.Point{X: l.X, Y: l.Y + 1})
-	leftLeftItem := m.Default.b.GetAt(game.Point{X: l.X - 1, Y: l.Y})
-	leftBottomItem := m.Default.b.GetAt(game.Point{X: l.X, Y: l.Y - 1})
-
-	leftLeftTopItem := m.Default.b.GetAt(game.Point{X: l.X, Y: l.Y + 2})
-	leftLeftLeftItem := m.Default.b.GetAt(game.Point{X: l.X - 2, Y: l.Y})
-	leftLeftBottomItem := m.Default.b.GetAt(game.Point{X: l.X, Y: l.Y - 2})
-
 	bottomItem := m.Default.b.GetAt(bottom)
-	//Zone to evaluate the left way to go
 
-	bottomBottomItem := m.Default.b.GetAt(game.Point{X: b.X, Y: b.Y - 1})
-	bottomRightItem := m.Default.b.GetAt(game.Point{X: b.X + 1, Y: b.Y})
-	bottomLeftItem := m.Default.b.GetAt(game.Point{X: b.X - 1, Y: b.Y})
+	topTopItem := m.Default.b.GetAt(topTop)
+	topRightItem := m.Default.b.GetAt(topRight)
+	topLeftItem := m.Default.b.GetAt(topLeft)
 
-	bottomBottomBottomItem := m.Default.b.GetAt(game.Point{X: b.X, Y: b.Y - 2})
-	bottomBottomRightItem := m.Default.b.GetAt(game.Point{X: b.X + 2, Y: b.Y})
-	bottomBottomLeftItem := m.Default.b.GetAt(game.Point{X: b.X - 2, Y: b.Y})
+	rightTopItem := m.Default.b.GetAt(rightTop)
+	rightRightItem := m.Default.b.GetAt(rightRight)
+	rightBottomItem := m.Default.b.GetAt(rightBottom)
+
+	leftTopItem := m.Default.b.GetAt(leftTop)
+	leftLeftItem := m.Default.b.GetAt(leftLeft)
+	leftBottomItem := m.Default.b.GetAt(leftBottom)
+
+	bottomBottomItem := m.Default.b.GetAt(bottomBottom)
+	bottomRightItem := m.Default.b.GetAt(bottomRight)
+	bottomLeftItem := m.Default.b.GetAt(bottomLeft)
 
 	n := utils.GetNoneElements(m.Default.b)
 
 	switch m.Way {
 	case direction.UP:
-		if topItem != game.BULLET {
+		if topItem != game.BULLET &&
+			topTopItem != game.BULLET &&
+			topLeftItem != game.BULLET &&
+			topRightItem != game.BULLET {
 			return
 		}
 
@@ -123,30 +117,24 @@ func (m *Middleware) AvoidOuterBulletsMiddleware() {
 		case utils.IsWithinElements(rightItem, n) &&
 			utils.IsWithinElements(rightTopItem, n) &&
 			utils.IsWithinElements(rightRightItem, n) &&
-			utils.IsWithinElements(rightBottomItem, n) &&
-			utils.IsWithinElements(rightRightTopItem, n) &&
-			utils.IsWithinElements(rightRightRightItem, n) &&
-			utils.IsWithinElements(rightRightBottomItem, n) && right != *m.MyBullet:
+			utils.IsWithinElements(rightBottomItem, n) && right != *m.MyBullet:
 			m.Way = direction.RIGHT
 		case utils.IsWithinElements(leftItem, n) &&
 			utils.IsWithinElements(leftTopItem, n) &&
 			utils.IsWithinElements(leftLeftItem, n) &&
-			utils.IsWithinElements(leftBottomItem, n) &&
-			utils.IsWithinElements(leftLeftTopItem, n) &&
-			utils.IsWithinElements(leftLeftLeftItem, n) &&
-			utils.IsWithinElements(leftLeftBottomItem, n) && left != *m.MyBullet:
+			utils.IsWithinElements(leftBottomItem, n) && left != *m.MyBullet:
 			m.Way = direction.LEFT
 		case utils.IsWithinElements(bottomItem, n) &&
 			utils.IsWithinElements(bottomBottomItem, n) &&
 			utils.IsWithinElements(bottomLeftItem, n) &&
-			utils.IsWithinElements(bottomRightItem, n) &&
-			utils.IsWithinElements(bottomBottomBottomItem, n) &&
-			utils.IsWithinElements(bottomBottomLeftItem, n) &&
-			utils.IsWithinElements(bottomBottomRightItem, n) && bottom != *m.MyBullet:
+			utils.IsWithinElements(bottomRightItem, n) && bottom != *m.MyBullet:
 			m.Way = direction.DOWN
 		}
 	case direction.RIGHT:
-		if rightItem != game.BULLET {
+		if rightItem != game.BULLET &&
+			rightRightItem != game.BULLET &&
+			rightBottomItem != game.BULLET &&
+			rightTopItem != game.BULLET {
 			return
 		}
 
@@ -154,30 +142,24 @@ func (m *Middleware) AvoidOuterBulletsMiddleware() {
 		case utils.IsWithinElements(topItem, n) &&
 			utils.IsWithinElements(topLeftItem, n) &&
 			utils.IsWithinElements(topRightItem, n) &&
-			utils.IsWithinElements(topTopItem, n) &&
-			utils.IsWithinElements(topTopLeftItem, n) &&
-			utils.IsWithinElements(topTopRightItem, n) &&
-			utils.IsWithinElements(topTopTopItem, n) && top != *m.MyBullet:
+			utils.IsWithinElements(topTopItem, n) && top != *m.MyBullet:
 			m.Way = direction.UP
 		case utils.IsWithinElements(leftItem, n) &&
 			utils.IsWithinElements(leftBottomItem, n) &&
 			utils.IsWithinElements(leftLeftItem, n) &&
-			utils.IsWithinElements(leftTopItem, n) &&
-			utils.IsWithinElements(leftLeftTopItem, n) &&
-			utils.IsWithinElements(leftLeftLeftItem, n) &&
-			utils.IsWithinElements(leftLeftBottomItem, n) && left != *m.MyBullet:
+			utils.IsWithinElements(leftTopItem, n) && left != *m.MyBullet:
 			m.Way = direction.LEFT
 		case utils.IsWithinElements(bottomItem, n) &&
 			utils.IsWithinElements(bottomBottomItem, n) &&
 			utils.IsWithinElements(bottomLeftItem, n) &&
-			utils.IsWithinElements(bottomRightItem, n) &&
-			utils.IsWithinElements(bottomBottomBottomItem, n) &&
-			utils.IsWithinElements(bottomBottomLeftItem, n) &&
-			utils.IsWithinElements(bottomBottomRightItem, n) && bottom != *m.MyBullet:
+			utils.IsWithinElements(bottomRightItem, n) && bottom != *m.MyBullet:
 			m.Way = direction.DOWN
 		}
 	case direction.LEFT:
-		if leftItem != game.BULLET {
+		if leftItem != game.BULLET &&
+			leftLeftItem != game.BULLET &&
+			leftBottomItem != game.BULLET &&
+			leftTopItem != game.BULLET {
 			return
 		}
 
@@ -185,30 +167,24 @@ func (m *Middleware) AvoidOuterBulletsMiddleware() {
 		case utils.IsWithinElements(topItem, n) &&
 			utils.IsWithinElements(topLeftItem, n) &&
 			utils.IsWithinElements(topRightItem, n) &&
-			utils.IsWithinElements(topTopItem, n) &&
-			utils.IsWithinElements(topTopLeftItem, n) &&
-			utils.IsWithinElements(topTopRightItem, n) &&
-			utils.IsWithinElements(topTopTopItem, n) && top != *m.MyBullet:
+			utils.IsWithinElements(topTopItem, n) && top != *m.MyBullet:
 			m.Way = direction.UP
 		case utils.IsWithinElements(rightItem, n) &&
 			utils.IsWithinElements(rightTopItem, n) &&
 			utils.IsWithinElements(rightRightItem, n) &&
-			utils.IsWithinElements(rightBottomItem, n) &&
-			utils.IsWithinElements(rightRightTopItem, n) &&
-			utils.IsWithinElements(rightRightRightItem, n) &&
-			utils.IsWithinElements(rightRightBottomItem, n) && right != *m.MyBullet:
+			utils.IsWithinElements(rightBottomItem, n) && right != *m.MyBullet:
 			m.Way = direction.RIGHT
 		case utils.IsWithinElements(bottomItem, n) &&
 			utils.IsWithinElements(bottomBottomItem, n) &&
 			utils.IsWithinElements(bottomLeftItem, n) &&
-			utils.IsWithinElements(bottomRightItem, n) &&
-			utils.IsWithinElements(bottomBottomBottomItem, n) &&
-			utils.IsWithinElements(bottomBottomLeftItem, n) &&
-			utils.IsWithinElements(bottomBottomRightItem, n) && bottom != *m.MyBullet:
+			utils.IsWithinElements(bottomRightItem, n) && bottom != *m.MyBullet:
 			m.Way = direction.DOWN
 		}
 	case direction.DOWN:
-		if bottomItem != game.BULLET {
+		if bottomItem != game.BULLET &&
+			bottomBottomItem != game.BULLET &&
+			bottomLeftItem != game.BULLET &&
+			bottomRightItem != game.BULLET {
 			return
 		}
 
@@ -216,26 +192,17 @@ func (m *Middleware) AvoidOuterBulletsMiddleware() {
 		case utils.IsWithinElements(topItem, n) &&
 			utils.IsWithinElements(topLeftItem, n) &&
 			utils.IsWithinElements(topTopItem, n) &&
-			utils.IsWithinElements(topRightItem, n) &&
-			utils.IsWithinElements(topTopLeftItem, n) &&
-			utils.IsWithinElements(topTopRightItem, n) &&
-			utils.IsWithinElements(topTopTopItem, n) && top != *m.MyBullet:
+			utils.IsWithinElements(topRightItem, n) && top != *m.MyBullet:
 			m.Way = direction.UP
 		case utils.IsWithinElements(rightItem, n) &&
 			utils.IsWithinElements(rightTopItem, n) &&
 			utils.IsWithinElements(rightRightItem, n) &&
-			utils.IsWithinElements(rightBottomItem, n) &&
-			utils.IsWithinElements(rightRightTopItem, n) &&
-			utils.IsWithinElements(rightRightRightItem, n) &&
-			utils.IsWithinElements(rightRightBottomItem, n) && right != *m.MyBullet:
+			utils.IsWithinElements(rightBottomItem, n) && right != *m.MyBullet:
 			m.Way = direction.RIGHT
 		case utils.IsWithinElements(leftItem, n) &&
 			utils.IsWithinElements(leftBottomItem, n) &&
 			utils.IsWithinElements(leftLeftItem, n) &&
-			utils.IsWithinElements(leftTopItem, n) &&
-			utils.IsWithinElements(leftLeftTopItem, n) &&
-			utils.IsWithinElements(leftLeftLeftItem, n) &&
-			utils.IsWithinElements(leftLeftBottomItem, n) && left != *m.MyBullet:
+			utils.IsWithinElements(leftTopItem, n) && left != *m.MyBullet:
 			m.Way = direction.LEFT
 		}
 	}
@@ -342,10 +309,10 @@ func (m *Middleware) ShouldMoveFireOrFireMoveMiddleware() {
 
 	for i := 2; i >= 0; i-- {
 
-		top := game.Point{X: a.X, Y: a.Y + 1}
-		right := game.Point{X: a.X + 1, Y: a.Y}
-		left := game.Point{X: a.X - 1, Y: a.Y}
-		bottom := game.Point{X: a.X, Y: a.Y - 1}
+		top := game.Point{X: a.X, Y: a.Y + i}
+		right := game.Point{X: a.X + i, Y: a.Y}
+		left := game.Point{X: a.X - i, Y: a.Y}
+		bottom := game.Point{X: a.X, Y: a.Y - i}
 
 		if m.MoveFire {
 			break
@@ -509,8 +476,9 @@ func Run(b *game.Board, KD *int, MyBullet *game.Point, StaticWay *direction.Dire
 
 	switch {
 	case m.Updation:
-		m.ResetKDMiddleware()
-
+		m.StopKDTickerMiddleware()
+		m.AllowToShootForcibly()
+		m.ShouldMoveFireOrFireMoveMiddleware()
 	default:
 		m.ResetTrapMiddleware()
 
