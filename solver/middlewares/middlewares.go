@@ -386,19 +386,19 @@ func (m *Middleware) RecessionMiddleware() {
 
 		switch m.Way {
 		case direction.UP:
-			if utils.IsElementEnemy(m.Default.b.GetAt(game.Point{X: myCoords.X, Y: myCoords.Y + 1})) {
+			if utils.IsElementEnemy(m.Default.b.GetAt(game.Point{X: myCoords.X, Y: myCoords.Y + 1})) || utils.IsElementEnemy(m.Default.b.GetAt(game.Point{X: myCoords.X, Y: myCoords.Y + 2}))  {
 				m.Recession = true
 			}
 		case direction.RIGHT:
-			if utils.IsElementEnemy(m.Default.b.GetAt(game.Point{X: myCoords.X + 1, Y: myCoords.Y})) {
+			if utils.IsElementEnemy(m.Default.b.GetAt(game.Point{X: myCoords.X + 1, Y: myCoords.Y})) || utils.IsElementEnemy(m.Default.b.GetAt(game.Point{X: myCoords.X + 2, Y: myCoords.Y})){
 				m.Recession = true
 			}
 		case direction.LEFT:
-			if utils.IsElementEnemy(m.Default.b.GetAt(game.Point{X: myCoords.X - 1, Y: myCoords.Y})) {
+			if utils.IsElementEnemy(m.Default.b.GetAt(game.Point{X: myCoords.X - 1, Y: myCoords.Y})) || utils.IsElementEnemy(m.Default.b.GetAt(game.Point{X: myCoords.X - 2, Y: myCoords.Y})){
 				m.Recession = true
 			}
 		case direction.DOWN:
-			if utils.IsElementEnemy(m.Default.b.GetAt(game.Point{X: myCoords.X, Y: myCoords.Y - 1})) {
+			if utils.IsElementEnemy(m.Default.b.GetAt(game.Point{X: myCoords.X, Y: myCoords.Y - 1})) || utils.IsElementEnemy(m.Default.b.GetAt(game.Point{X: myCoords.X, Y: myCoords.Y - 2})){
 				m.Recession = true
 			}
 		}
