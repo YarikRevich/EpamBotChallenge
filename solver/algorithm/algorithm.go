@@ -131,14 +131,7 @@ func GetBestTactic(myCoords game.Point, myBullet game.Point, destination game.Po
 	path := r.Path(destination)
 
 	if path == nil {
-		//IF IT IS A TRAP IT CREATES A NEW GRAPH AND FIND THE WAYOUT ...
-
-		a := b.GetAllPoints(append(utils.GetAvailableElements(b), utils.GetWallsElements(b)...)...)
-
-		g := createGraph(myCoords, a, b.GetBullets())
-
-		r := bfs.New(g, myCoords)
-		path = r.Path(utils.GetTheNearestElement(myCoords, utils.GetWalls(b), b))
+		return ZERO_TACTIC
 	}
 
 	if len(path) <= 1 {

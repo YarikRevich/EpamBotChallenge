@@ -1,9 +1,9 @@
 package utils
 
 import (
-	"fmt"
 	"battlecity_test/direction"
 	"battlecity_test/game"
+	"fmt"
 	"math"
 	"math/rand"
 )
@@ -57,6 +57,20 @@ func GetWallsElements(b *game.Board) []game.Element {
 		game.WALL_DESTROYED_RIGHT_UP,
 		game.WALL_DESTROYED_DOWN_LEFT,
 		game.WALL_DESTROYED_DOWN_RIGHT,
+	}
+}
+
+func GetNoneElements(b *game.Board) []game.Element {
+	return []game.Element{
+		game.NONE,
+		game.TREE,
+		game.ICE,
+		game.PRIZE,
+		game.PRIZE_IMMORTALITY,
+		game.PRIZE_BREAKING_WALLS,
+		game.PRIZE_VISIBILITY,
+		game.PRIZE_NO_SLIDING,
+		game.PRIZE_WALKING_ON_WATER,
 	}
 }
 
@@ -126,13 +140,13 @@ func IsWithinPrecision(a game.Point, b []game.Point, p int) bool {
 	return false
 }
 
-func GetAvailableEnemies(a []game.Point, b *game.Board)[]game.Point{
+func GetAvailableEnemies(a []game.Point, b *game.Board) []game.Point {
 	var r []game.Point
 
 	q := b.GetAllPoints(GetAvailableElements(b)...)
-	for _, enemy := range a{
-		for _, available := range q{
-			if enemy == available{
+	for _, enemy := range a {
+		for _, available := range q {
+			if enemy == available {
 				r = append(r, enemy)
 			}
 		}
@@ -247,7 +261,9 @@ func IsUpdatingProcess(e []game.Point) bool {
 		(IsWithin(game.Point{X: 2, Y: 32}, e) &&
 			IsWithin(game.Point{X: 31, Y: 32}, e)) ||
 		(IsWithin(game.Point{X: 4, Y: 1}, e) &&
-			IsWithin(game.Point{X: 20, Y: 1}, e)) {
+			IsWithin(game.Point{X: 20, Y: 1}, e)) ||
+		(IsWithin(game.Point{X: 1, Y: 1}, e) &&
+			IsWithin(game.Point{X: 25, Y: 1}, e)) {
 		return true
 	}
 	return false
