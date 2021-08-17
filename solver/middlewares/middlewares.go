@@ -5,7 +5,6 @@ import (
 	"battlecity_test/game"
 	"battlecity_test/solver/algorithm"
 	"battlecity_test/solver/utils"
-	_ "fmt"
 )
 
 type Default struct {

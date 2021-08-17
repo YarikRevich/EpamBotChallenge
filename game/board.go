@@ -334,15 +334,3 @@ func (b *Board) getAction() action.Action {
 func (b *Board) isOutOfField(p Point) bool {
 	return p.X > b.BoardSize()-1 || p.X < 0 || p.Y > b.BoardSize()-1 || p.Y < 0
 }
-
-//
-//func toRunes(s string) []rune {
-//	for i, l := range []string(r) {
-//		//j := i
-//		if i == boardSize {
-//			//j = 0
-//		}
-//		m[i] = []rune(l)
-//	}
-//	return []rune{}
-//}

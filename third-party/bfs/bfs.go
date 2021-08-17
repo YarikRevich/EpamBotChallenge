@@ -1,9 +1,8 @@
 package bfs
 
 import (
-	"fmt"
 	"battlecity_test/game"
-	"battlecity_test/solver/algorithm/graph"
+	"battlecity_test/third-party/graph"
 
 	"gopkg.in/karalabe/cookiejar.v2/collections/queue"
 	"gopkg.in/karalabe/cookiejar.v2/collections/stack"
@@ -16,7 +15,6 @@ type Bfs struct {
 
 	visited map[game.Point]bool
 	parents map[game.Point]game.Point
-	order   []game.Point
 	paths   map[game.Point][]game.Point
 
 	pending *queue.Queue
@@ -32,13 +30,13 @@ func New(g *graph.Graph, src game.Point) *Bfs {
 
 	d.visited = make(map[game.Point]bool, g.Vertices())
 	d.visited[src] = true
+
 	d.parents = make(map[game.Point]game.Point, g.Vertices())
-	d.order = make([]game.Point, 1, g.Vertices())
-	d.order[0] = src
 	d.paths = make(map[game.Point][]game.Point)
 
 	d.pending = queue.New()
 	d.pending.Push(src)
+	
 	d.builder = stack.New()
 
 	return d
@@ -48,13 +46,9 @@ func New(g *graph.Graph, src game.Point) *Bfs {
 func (d *Bfs) Path(dsts ...game.Point) []game.Point {
 
 	for _, dst := range dsts {
-
-		// Return nil if not reachable
 		if !d.Reachable(dst) {
-			fmt.Println("NOT REACHABLE", dst)
 			return nil
 		}
-		// If reachable, but path not yet generated, create and cache
 		if cached, ok := d.paths[dst]; !ok {
 			for cur := dst; cur != d.source; {
 				d.builder.Push(cur)
@@ -73,14 +67,13 @@ func (d *Bfs) Path(dsts ...game.Point) []game.Point {
 		}
 		
 	}
-	return []game.Point{}
+	return nil
 }
 
 // Checks whether a given vertex is reachable from the source.
 func (d *Bfs) Reachable(dst game.Point) bool {
 	if !d.visited[dst] && !d.pending.Empty() {
-		f := d.search(dst)
-		if !f {
+		if f := d.search(dst); !f{
 			return false
 		}
 	}
@@ -95,12 +88,10 @@ func (d *Bfs) search(dst game.Point) bool {
 		d.graph.Do(src, func(peer interface{}) {
 			if p := peer.(game.Point); !d.visited[p] {
 				d.visited[p] = true
-				d.order = append(d.order, p)
 				d.parents[p] = src
 				d.pending.Push(p)
 			}
 		})
-		// If we found the destination, yield
 		if dst == src {
 			return true
 		}

@@ -23,41 +23,30 @@ package solver
 
 import (
 	"battlecity_test/action"
-	"battlecity_test/direction"
 	"battlecity_test/game"
-	"battlecity_test/solver/middlewares"
+	"battlecity_test/solver/executor"
 )
 
-var (
-	PreviousStep game.Point
-)
+type Solver struct {}
 
-type Solver struct {
-	KD *int
-	MyBullet *game.Point
-	StaticWay *direction.Direction
+func New() *Solver {
+	return new(Solver)
 }
 
-func New() Solver {
-	var k int = 4
-	var d direction.Direction = direction.NONE
-	return Solver{KD: &k, MyBullet: new(game.Point), StaticWay: &d}
-}
+func (s *Solver) GetNextAction(b *game.Board) action.Action {	
+	return executor.New(b).GetAction()
 
-func (s *Solver) GetNextAction(b *game.Board) action.Action {
-	//todo: your code here
+	// m := middlewares.Run(b, s.KD, s.MyBullet, s.StaticWay)
 
-	m := middlewares.Run(b, s.KD, s.MyBullet, s.StaticWay)
+	// if m.Way.IsValid() {
+	// 	if m.Shoot{
+	// 		if m.MoveFire{
+	// 			return action.MoveFire(m.Way)
+	// 		}
+	// 		return action.FireMove(m.Way)
+	// 	}
+	// 	return action.Move(m.Way)
+	// }
 
-	if m.Way.IsValid() {
-		if m.Shoot{
-			if m.MoveFire{
-				return action.MoveFire(m.Way)
-			}
-			return action.FireMove(m.Way)
-		}
-		return action.Move(m.Way)
-	}
-
-	return action.DoNothing()
+	// return action.DoNothing()
 }
