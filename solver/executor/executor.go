@@ -17,12 +17,9 @@ func (e *Executor) ProcessMap() (action.Action, error) {
 	if err := gc.CreateGraph(); err != nil{
 		return action.DoNothing(), err
 	}
-	g := gc.GetGraph()
 
-	we := wayestimator.New(g, e.board)
-	we.ProcessGraph()
-
-	return we.GetWay(), nil
+	return wayestimator.New(
+		gc.GetGraph(), e.board).GetWay(), nil
 }
 
 func (e *Executor) GetAction() action.Action {

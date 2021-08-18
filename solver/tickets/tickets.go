@@ -9,6 +9,8 @@ const (
 
 	ENEMY  = 100
 	BULLET = 200
+
+	DEFAULT = 200
 )
 
 type Ticket struct {
@@ -17,10 +19,17 @@ type Ticket struct {
 	amount int
 }
 
-func (t *Ticket) EstimateAmount(point game.Point) {
+func (t *Ticket) EstimateMan(modifiers ...int){
+	for _, mod := range modifiers{
+		t.amount += mod
+	}
+}
+
+func (t *Ticket) EstimateAuto(point game.Point) {
 	if t.board.IsBulletAt(point) {
 		t.amount += BULLET
 	}
+	
 }
 
 func (t *Ticket) GetAmount() int {
