@@ -19,7 +19,7 @@ func (e *Executor) ProcessMap() (action.Action, error) {
 	}
 
 	return wayestimator.New(
-		gc.GetGraph(), e.board).GetWay(), nil
+		gc.GetGraph(), e.board).Estimate(), nil
 }
 
 func (e *Executor) GetAction() action.Action {

@@ -20,8 +20,7 @@ func (t *Target) getDistanceToPoint(p game.Point) int {
 		math.Pow(
 			float64(p.X) - float64(me.X), 2) +
 		math.Pow(
-				float64(p.Y) - float64(me.Y), 2),
-	))
+				float64(p.Y) - float64(me.Y), 2)))
 }
 
 func (t *Target) getNearestEnemy(enemyTypes ...game.Element) game.Point{
